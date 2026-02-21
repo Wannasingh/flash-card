@@ -11,9 +11,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/auth/oauth")
+@SuppressWarnings("null")
 public class OAuthController {
 
     @Autowired
@@ -23,8 +25,8 @@ public class OAuthController {
     JwtUtils jwtUtils;
 
     @PostMapping("/apple")
-    public ResponseEntity<?> apple(@Valid @RequestBody AppleOAuthRequest request) throws Exception {
-        JwtResponse response = oauthService.loginWithApple(request.getIdentityToken(), request.getRawNonce(), request.getDisplayName());
+    public ResponseEntity<?> apple(@Valid @RequestBody AppleOAuthRequest request, HttpServletRequest httpRequest) throws Exception {
+        JwtResponse response = oauthService.loginWithApple(request.getIdentityToken(), request.getRawNonce(), request.getDisplayName(), httpRequest);
         ResponseCookie cookie = jwtUtils.generateJwtCookie(response.getToken());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -32,8 +34,8 @@ public class OAuthController {
     }
 
     @PostMapping("/google")
-    public ResponseEntity<?> google(@Valid @RequestBody GoogleOAuthRequest request) throws Exception {
-        JwtResponse response = oauthService.loginWithGoogleCode(request.getCode(), request.getCodeVerifier(), request.getRedirectUri());
+    public ResponseEntity<?> google(@Valid @RequestBody GoogleOAuthRequest request, HttpServletRequest httpRequest) throws Exception {
+        JwtResponse response = oauthService.loginWithGoogleCode(request.getCode(), request.getCodeVerifier(), request.getRedirectUri(), httpRequest);
         ResponseCookie cookie = jwtUtils.generateJwtCookie(response.getToken());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())

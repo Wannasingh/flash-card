@@ -77,21 +77,20 @@ struct PublicProfileView: View {
                     .foregroundColor(.red)
             }
         }
-        .onAppear {
-            loadProfile()
+        .task {
+            await loadProfile()
         }
     }
     
-    private func loadProfile() {
+    @MainActor
+    private func loadProfile() async {
         guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else { return }
-        Task {
-            do {
-                self.profile = try await UserAPI.shared.fetchPublicProfile(userId: userId, token: token)
-                self.isLoading = false
-            } catch {
-                self.errorMessage = "Failed to intercept profile data."
-                self.isLoading = false
-            }
+        do {
+            self.profile = try await UserAPI.shared.fetchPublicProfile(userId: userId, token: token)
+            self.isLoading = false
+        } catch {
+            self.errorMessage = "Failed to intercept profile data."
+            self.isLoading = false
         }
     }
 }
@@ -128,7 +127,7 @@ struct ProfileAvatarView: View {
                 .shadow(color: Theme.cyanAccent, radius: 10)
             
             if let urlString = imageUrl, let url = URL(string: urlString) {
-                AsyncImage(url: url) { image in
+                CachedAsyncImage(url: url) { image in
                     image.resizable().scaledToFill()
                 } placeholder: {
                     ProgressView()

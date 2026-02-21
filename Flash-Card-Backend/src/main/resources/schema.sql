@@ -163,3 +163,16 @@ CREATE TABLE IF NOT EXISTS flashcard.user_inventory (
 
 ALTER TABLE flashcard.users ADD COLUMN IF NOT EXISTS active_aura_code VARCHAR(50);
 ALTER TABLE flashcard.users ADD COLUMN IF NOT EXISTS active_skin_code VARCHAR(50);
+
+-- 9. Refresh Tokens (Long-lived tokens for silent access token renewal)
+CREATE TABLE IF NOT EXISTS flashcard.refresh_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    token VARCHAR(512) NOT NULL UNIQUE,
+    user_id BIGINT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT fk_refresh_tokens_user FOREIGN KEY (user_id) REFERENCES flashcard.users (id) ON DELETE CASCADE
+);
+-- Note: UNIQUE constraint on token already creates an implicit index
+
+

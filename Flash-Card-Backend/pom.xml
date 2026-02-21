@@ -35,6 +35,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+		<!-- Flyway: enterprise-grade schema version control (replaces spring.sql.init) -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
@@ -127,13 +132,11 @@
 			<groupId>net.bytebuddy</groupId>
 			<artifactId>byte-buddy</artifactId>
 			<version>1.15.11</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.bytebuddy</groupId>
 			<artifactId>byte-buddy-agent</artifactId>
 			<version>1.15.11</version>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -172,6 +175,24 @@
 				<version>3.1.2</version>
 				<configuration>
 					<argLine>-Dnet.bytebuddy.experimental=true</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<configuration>
+					<url>${env.SPRING_DATASOURCE_URL}</url>
+					<user>${env.SPRING_DATASOURCE_USERNAME}</user>
+					<password>${env.SPRING_DATASOURCE_PASSWORD}</password>
+					<schemas>
+						<schema>flashcard</schema>
+					</schemas>
+					<locations>
+						<location>filesystem:src/main/resources/db/migration</location>
+					</locations>
+					<placeholders>
+						<FLASHCARD_APP_PASSWORD>${env.FLASHCARD_APP_PASSWORD}</FLASHCARD_APP_PASSWORD>
+					</placeholders>
 				</configuration>
 			</plugin>
 		</plugins>

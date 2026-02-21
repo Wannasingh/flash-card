@@ -16,10 +16,7 @@ final class GoogleOAuthFlow: NSObject, ASWebAuthenticationPresentationContextPro
         let state = randomString(length: 16)
 
         let redirectUri = "\(AppConfig.googleRedirectScheme):/oauth2redirect"
-        
-        NSLog("DEBUG: Google Client ID: %@", AppConfig.googleClientId)
-        NSLog("DEBUG: Redirect URI: %@", redirectUri)
-        NSLog("DEBUG: AppConfig.googleRedirectScheme: %@", AppConfig.googleRedirectScheme)
+
 
         var comps = URLComponents(string: "https://accounts.google.com/o/oauth2/v2/auth")!
         comps.queryItems = [
@@ -89,8 +86,8 @@ final class GoogleOAuthFlow: NSObject, ASWebAuthenticationPresentationContextPro
             return UIWindow(windowScene: scene)
         }
         
-        // This is scientifically impossible in a running app, but satisfies the compiler safely
-        return UIWindow(frame: .zero)
+        // This fallback is unreachable in a live app — all paths above handle real scenes.
+        fatalError("No UIWindowScene available — should never happen in a running iOS app.")
     }
 
     private func randomCodeVerifier() -> String {

@@ -2,7 +2,7 @@ import Foundation
 
 class LeaderboardAPI {
     static let shared = LeaderboardAPI()
-    private let baseURL = "http://localhost:8080/api/leaderboard"
+    private let baseURL = "\(AppConfig.backendBaseURL)/api/leaderboard"
     
     func fetchGlobalLeaderboard(token: String) async throws -> [LeaderboardEntry] {
         guard let url = URL(string: "\(baseURL)/global") else { throw URLError(.badURL) }

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_badges")
+@Table(name = "user_badges", schema = "flashcard")
 @Data
 @Builder
 @AllArgsConstructor

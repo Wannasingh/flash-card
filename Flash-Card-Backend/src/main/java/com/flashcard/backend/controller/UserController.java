@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user")
+@SuppressWarnings("null")
 public class UserController {
     @Autowired
     UserRepository userRepository;
@@ -39,15 +40,25 @@ public class UserController {
 
     @GetMapping("/profile/{id}")
     @Operation(summary = "Get public profile by ID")
-    public ResponseEntity<com.flashcard.backend.payload.response.PublicProfileResponse> getPublicProfile(@PathVariable Long id) {
-        User user = userRepository.findById(id)
+    public ResponseEntity<com.flashcard.backend.payload.response.PublicProfileResponse> getPublicProfile(@PathVariable @NonNull Long id, HttpServletRequest request) {
+        User user = userRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String proxiedImageUrl = user.getImageUrl();
+        if (proxiedImageUrl != null && !proxiedImageUrl.isEmpty() && !proxiedImageUrl.startsWith("http")) {
+            if (request != null) {
+                String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                proxiedImageUrl = baseUrl + "/api/user/profile/" + user.getId() + "/image";
+            } else {
+                proxiedImageUrl = "/api/user/profile/" + user.getId() + "/image";
+            }
+        }
 
         com.flashcard.backend.payload.response.PublicProfileResponse response = com.flashcard.backend.payload.response.PublicProfileResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .displayName(user.getDisplayName())
-                .imageUrl(user.getImageUrl())
+                .imageUrl(proxiedImageUrl)
                 .totalXP(user.getTotalXP())
                 .weeklyXP(user.getWeeklyXP())
                 .streakDays(user.getStreakDays())
@@ -66,7 +77,9 @@ public class UserController {
             throw new RuntimeException("User not authenticated");
         }
 
-        User user = userRepository.findById(userDetails.getId())
+        Long userId = userDetails.getId();
+
+        User user = userRepository.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<String> roles = userDetails.getAuthorities().stream()
@@ -83,7 +96,7 @@ public class UserController {
             return ResponseEntity.status(401).build();
         }
 
-        User user = userRepository.findById(userDetails.getId())
+        User user = userRepository.findById(java.util.Objects.requireNonNull(userDetails.getId()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String storedPath = user.getImageUrl();
@@ -118,6 +131,54 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "View profile image of specific user (proxy)")
+    @GetMapping("/profile/{id}/image")
+    public ResponseEntity<byte[]> viewProfileImageById(@PathVariable @NonNull Long id, org.springframework.web.context.request.WebRequest request) {
+        User user = userRepository.findById(java.util.Objects.requireNonNull(id))
+                .orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String storedPath = user.getImageUrl();
+        if (storedPath == null || storedPath.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (storedPath.startsWith("http")) {
+            return ResponseEntity.status(302)
+                    .header(HttpHeaders.LOCATION, storedPath)
+                    .build();
+        }
+
+        String eTag = "\"" + storedPath.hashCode() + "\"";
+        if (request.checkNotModified(eTag)) {
+            return null;
+        }
+
+        try {
+            byte[] imageData = storageService.downloadImage(storedPath);
+            if (imageData == null || imageData.length == 0) {
+                System.out.println("[API] ⚠️  Image not found in storage for user " + id + " path: " + storedPath);
+                return ResponseEntity.notFound().build();
+            }
+
+            String contentType = storedPath.endsWith(".jpg") || storedPath.endsWith(".jpeg")
+                    ? "image/jpeg"
+                    : storedPath.endsWith(".webp") ? "image/webp" : "image/png";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .cacheControl(org.springframework.http.CacheControl.maxAge(365, java.util.concurrent.TimeUnit.DAYS).cachePublic())
+                    .eTag(eTag)
+                    .body(imageData);
+        } catch (Exception e) {
+            System.out.println("[API] ❌ Image proxy error for user " + id + " → " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @PutMapping("/profile")
     public JwtResponse updateProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                      @Valid @RequestBody ProfileUpdateRequest request) {
@@ -126,11 +187,8 @@ public class UserController {
         }
 
         Long userId = userDetails.getId();
-        if (userId == null) {
-            throw new RuntimeException("User ID not found in session");
-        }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (request.getDisplayName() != null) {
@@ -162,11 +220,8 @@ public class UserController {
         }
 
         Long userId = userDetails.getId();
-        if (userId == null) {
-            throw new RuntimeException("User ID not found in session");
-        }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         byte[] imageData = file.getBytes();
@@ -223,7 +278,7 @@ public class UserController {
             // Return backend-proxied URL so iOS app bypasses ATS
             if (request != null) {
                 String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
-                imageUrl = baseUrl + "/api/user/profile/image/view";
+                imageUrl = baseUrl + "/api/user/profile/" + user.getId() + "/image";
             } else {
                 // Fallback: try signed URL
                 try {

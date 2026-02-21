@@ -74,7 +74,6 @@ class StudySyncManager {
     
     private func updateStreak() {
         let lastDateKey = "lastStudyDate"
-        let currentStreakKey = "streakCount"
         
         let now = Date()
         let calendar = Calendar.current

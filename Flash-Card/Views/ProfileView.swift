@@ -16,7 +16,7 @@ struct ProfileView: View {
                         // Profile Header
                         HStack(spacing: 16) {
                             if let imageUrl = sessionStore.userProfile?.imageUrl, let url = URL(string: imageUrl) {
-                                AsyncImage(url: url) { image in
+                                CachedAsyncImage(url: url) { image in
                                     image.resizable().scaledToFill()
                                 } placeholder: {
                                     Image(systemName: "person.crop.circle.badge.checkmark")
@@ -155,6 +155,9 @@ struct ProfileView: View {
                         .padding(.horizontal)
                     }
                     .padding(.vertical)
+                }
+                .refreshable {
+                    await sessionStore.refreshProfile()
                 }
             }
             .navigationTitle("Player Stats")

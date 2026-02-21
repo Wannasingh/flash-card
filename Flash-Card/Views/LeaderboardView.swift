@@ -31,7 +31,7 @@ struct LeaderboardView: View {
                     }
                     .pickerStyle(.segmented)
                     .frame(width: 160)
-                    .onChange(of: isWeekly) { _ in
+                    .onChange(of: isWeekly) { _, _ in
                         Task { await loadLeaderboard() }
                     }
                 }
@@ -71,8 +71,8 @@ struct LeaderboardView: View {
                 }
             }
         }
-        .onAppear {
-            Task { await loadLeaderboard() }
+        .task {
+            await loadLeaderboard()
         }
         .fullScreenCover(item: Binding(
             get: { selectedUserId.map { IdentifiableInt64(id: $0) } },
@@ -112,6 +112,7 @@ struct LeaderboardView: View {
         }
     }
     
+    @MainActor
     private func loadLeaderboard() async {
         guard let token = try? tokenStore.getString(forKey: "accessToken") else { return }
         
@@ -144,7 +145,7 @@ struct PodiumItem: View {
                     .shadow(color: color.opacity(0.5), radius: 10)
                 
                 if let urlString = entry.imageUrl, let url = URL(string: urlString) {
-                    AsyncImage(url: url) { img in
+                    CachedAsyncImage(url: url) { img in
                         img.resizable().clipShape(Circle())
                     } placeholder: {
                         Image(systemName: "person.fill").foregroundStyle(.white.opacity(0.3))
@@ -190,7 +191,7 @@ struct LeaderboardRow: View {
                 .frame(width: 30)
             
             if let urlString = entry.imageUrl, let url = URL(string: urlString) {
-                AsyncImage(url: url) { img in
+                CachedAsyncImage(url: url) { img in
                     img.resizable().clipShape(Circle())
                 } placeholder: {
                     Circle().fill(.white.opacity(0.1))

@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import java.time.Instant;
 
 @Entity
-@Table(name = "cards")
+@Table(name = "cards", schema = "flashcard")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

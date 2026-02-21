@@ -30,11 +30,21 @@ class SessionStore: ObservableObject {
         do {
             let response = try await AuthAPI.shared.fetchProfile()
             self.userProfile = response
-        } catch {
-            print("Failed to fetch profile: \(error)")
-            // If unauthorized, maybe logout?
-            // logout() 
+        } catch let error as NSError {
+            // 401 = token expired or invalid → auto-logout and redirect to login
+            if error.code == 401 {
+                print("SessionStore: Token expired (401) → auto-logout")
+                logout()
+            } else {
+                print("Failed to fetch profile: \(error)")
+            }
         }
+    }
+
+    /// Called from anywhere in the app when a 401 is received from any API call.
+    func handleUnauthorized() {
+        print("SessionStore: Unauthorized (401) → clearing session")
+        logout()
     }
 
     func login(usernameOrEmail: String, password: String) async {
@@ -69,6 +79,7 @@ class SessionStore: ObservableObject {
 
     func logout() {
         KeychainStore.shared.delete(forKey: "accessToken")
+        KeychainStore.shared.delete(forKey: "refreshToken")
         self.isLoggedIn = false
         self.userProfile = nil
     }
@@ -89,6 +100,9 @@ class SessionStore: ObservableObject {
         do {
             if let token = response.token {
                 try KeychainStore.shared.setString(token, forKey: "accessToken")
+            }
+            if let refresh = response.refreshToken {
+                try KeychainStore.shared.setString(refresh, forKey: "refreshToken")
             }
             self.userProfile = response
             self.isLoggedIn = true

@@ -130,10 +130,8 @@ struct StudySessionView: View {
                 }
             }
         }
-        .onAppear {
-            Task {
-                await viewModel.fetchDueCards()
-            }
+        .task {
+            await viewModel.fetchDueCards()
         }
     }
     

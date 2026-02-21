@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Entity
-@Table(name = "decks")
+@Table(name = "decks", schema = "flashcard")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

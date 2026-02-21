@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "badges")
+@Table(name = "badges", schema = "flashcard")
 @Data
 @Builder
 @AllArgsConstructor

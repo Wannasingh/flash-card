@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -38,6 +39,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class OAuthService {
 
     private static final String APPLE_JWKS_URL = "https://appleid.apple.com/auth/keys";
@@ -74,7 +76,7 @@ public class OAuthService {
     ObjectMapper objectMapper;
 
     @Transactional
-    public com.flashcard.backend.payload.response.JwtResponse loginWithApple(String identityToken, String rawNonce, String displayName)
+    public com.flashcard.backend.payload.response.JwtResponse loginWithApple(String identityToken, String rawNonce, String displayName, HttpServletRequest request)
             throws ParseException, IOException, InterruptedException, JOSEException {
 
         if (appleClientId == null || appleClientId.isBlank()) {
@@ -109,11 +111,11 @@ public class OAuthService {
         if (dn != null && dn.isBlank()) {
             dn = null;
         }
-        return loginOrCreate("APPLE", providerUserId, email, emailVerified != null && emailVerified, dn, null);
+        return loginOrCreate("APPLE", providerUserId, email, emailVerified != null && emailVerified, dn, null, request);
     }
 
     @Transactional
-    public com.flashcard.backend.payload.response.JwtResponse loginWithGoogleCode(String code, String codeVerifier, String redirectUri)
+    public com.flashcard.backend.payload.response.JwtResponse loginWithGoogleCode(String code, String codeVerifier, String redirectUri, HttpServletRequest httpRequest)
             throws IOException, InterruptedException, ParseException, JOSEException {
 
         if (googleClientId == null || googleClientId.isBlank()) {
@@ -162,7 +164,7 @@ public class OAuthService {
             email = email.trim().toLowerCase();
         }
 
-        return loginOrCreate("GOOGLE", providerUserId, email, emailVerified != null && emailVerified, name, picture);
+        return loginOrCreate("GOOGLE", providerUserId, email, emailVerified != null && emailVerified, name, picture, httpRequest);
     }
 
     private com.flashcard.backend.payload.response.JwtResponse loginOrCreate(
@@ -171,7 +173,8 @@ public class OAuthService {
             String email,
             boolean emailVerified,
             String displayName,
-            String imageUrl
+            String imageUrl,
+            HttpServletRequest request
     ) {
         if (providerUserId == null || providerUserId.isBlank()) {
             throw new IllegalStateException("Missing provider user id");
@@ -201,7 +204,7 @@ public class OAuthService {
             if (changed) {
                 userRepository.save(user);
             }
-            return issueJwt(user);
+            return issueJwt(user, request);
         }
 
         if (email == null || email.isBlank() || !emailVerified) {
@@ -236,10 +239,10 @@ public class OAuthService {
         }
         userIdentityRepository.save(identity);
 
-        return issueJwt(user);
+        return issueJwt(user, request);
     }
 
-    private com.flashcard.backend.payload.response.JwtResponse issueJwt(User user) {
+    private com.flashcard.backend.payload.response.JwtResponse issueJwt(User user, HttpServletRequest request) {
         UserDetailsImpl userDetails = UserDetailsImpl.build(user);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails,
@@ -253,7 +256,12 @@ public class OAuthService {
         String imageUrl = userDetails.getImageUrl();
         if (imageUrl != null && !imageUrl.isEmpty() && !imageUrl.startsWith("http")) {
             // Supabase storage path → proxy through backend
-            imageUrl = "/api/user/profile/image/view";
+            if (request != null) {
+                String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                imageUrl = baseUrl + "/api/user/profile/" + user.getId() + "/image";
+            } else {
+                imageUrl = "/api/user/profile/" + user.getId() + "/image";
+            }
         }
 
         return new com.flashcard.backend.payload.response.JwtResponse(

@@ -129,8 +129,18 @@ public class SupabaseStorageService {
             return fullPath;
         }
 
+        // Clean path: remove bucket name if it's already included in fullPath
+        // Because the API expects /object/sign/{bucket}/{path}
+        String objectPath = fullPath;
+        if (fullPath.startsWith(bucketName + "/")) {
+            objectPath = fullPath.substring(bucketName.length() + 1);
+        }
+
         String baseUrl = getBaseUrl();
-        String signUrl = baseUrl + "/storage/v1/object/sign/" + fullPath;
+        // Correct API endpoint: /storage/v1/object/sign/{bucket}/{wildcard}
+        String signUrl = baseUrl + "/storage/v1/object/sign/" + bucketName + "/" + objectPath;
+        
+        // JSON payload for expiry
         String jsonPayload = "{\"expiresIn\": 86400}";
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -151,26 +161,49 @@ public class SupabaseStorageService {
         try {
             com.fasterxml.jackson.databind.JsonNode node =
                     new com.fasterxml.jackson.databind.ObjectMapper().readTree(response.body());
+            
+            // Supabase returns: { "signedURL": "/object/sign/..." } or full URL
             String signedPath = node.get("signedURL").asText();
-            if (signedPath.startsWith("/object/")) {
-                return baseUrl + "/storage/v1" + signedPath;
+            
+            // Handle relative path response (common in local Supabase)
+            if (signedPath.startsWith("/")) {
+                // Remove /storage/v1 prefix if it exists in signedPath to avoid duplication when appending to baseUrl
+                // But typically local supabase returns /object/sign/... which needs /storage/v1 prefix from baseUrl
+                
+                // Construct the full URL carefully
+                // If baseUrl already ends with /storage/v1, don't duplicate
+                // But our getBaseUrl() returns root (e.g. http://localhost:8000)
+                
+                // Case 1: signedPath starts with /storage/v1 -> just append to host
+                if (signedPath.startsWith("/storage/v1")) {
+                     return baseUrl + signedPath;
+                }
+                
+                // Case 2: signedPath starts with /object/ -> needs /storage/v1 prefix
+                if (signedPath.startsWith("/object/")) {
+                    return baseUrl + "/storage/v1" + signedPath;
+                }
+                
+                // Fallback: just append
+                return baseUrl + signedPath;
             }
-            return baseUrl + signedPath;
+            
+            // If it's already a full URL
+            return signedPath;
         } catch (Exception e) {
             System.err.println("Error parsing signed URL: " + e.getMessage());
             return null;
         }
     }
 
-    /**
-     * Download image bytes from Supabase storage.
-     * Used by the backend proxy to serve images to iOS clients.
-     */
     public byte[] downloadImage(String storedPath) throws IOException, InterruptedException {
         String signedUrl = getSignedUrl(storedPath);
         if (signedUrl == null) {
+            System.err.println("Failed to get signed URL for: " + storedPath);
             return null;
         }
+
+        System.out.println("Downloading from signed URL: " + signedUrl);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(signedUrl))
@@ -180,7 +213,8 @@ public class SupabaseStorageService {
 
         HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
         if (response.statusCode() != 200) {
-            System.err.println("Failed to download image: " + response.statusCode());
+            String errResponse = new String(response.body());
+            System.err.println("Failed to download image from signed URL. Status: " + response.statusCode() + " Response: " + errResponse);
             return null;
         }
         return response.body();

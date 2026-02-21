@@ -2,7 +2,6 @@ package com.flashcard.backend.service;
 
 import com.flashcard.backend.entity.Deck;
 import com.flashcard.backend.entity.UserDeck;
-import com.flashcard.backend.entity.UserDeckId;
 import com.flashcard.backend.exception.ResourceNotFoundException;
 import com.flashcard.backend.payload.request.DeckRequest;
 import com.flashcard.backend.payload.response.DeckResponse;
@@ -21,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class DeckService {
 
     @Autowired

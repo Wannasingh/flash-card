@@ -2,7 +2,7 @@ import Foundation
 
 class UserAPI {
     static let shared = UserAPI()
-    private let baseURL = "http://localhost:8080/api/user"
+    private let baseURL = "\(AppConfig.backendBaseURL)/api/user"
     
     func fetchPublicProfile(userId: Int64, token: String) async throws -> PublicProfileResponse {
         guard let url = URL(string: "\(baseURL)/profile/\(userId)") else {

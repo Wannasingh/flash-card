@@ -1,5 +1,15 @@
 import Foundation
 
+enum APIError: LocalizedError {
+    case custom(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .custom(let message): return message
+        }
+    }
+}
+
 struct DeckListResponse: Codable {
     let decks: [DeckDTO]
 }
@@ -50,14 +60,14 @@ class DeckAPI {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
         }
         
         if httpResponse.statusCode == 200 {
             // API returns a List directly, not wrapped in an object
             return try JSONDecoder().decode([DeckDTO].self, from: data)
         } else {
-            throw NSLocalizedString("Failed to fetch library", comment: "") as! Error
+            throw APIError.custom(NSLocalizedString("Failed to fetch library", comment: ""))
         }
     }
     
@@ -72,13 +82,13 @@ class DeckAPI {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
         }
         
         if httpResponse.statusCode == 200 {
             return try JSONDecoder().decode([DeckDTO].self, from: data)
         } else {
-            throw NSLocalizedString("Failed to fetch marketplace", comment: "") as! Error
+            throw APIError.custom(NSLocalizedString("Failed to fetch marketplace", comment: ""))
         }
     }
     
@@ -93,12 +103,12 @@ class DeckAPI {
         let (_, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
         }
         
         // 200 OK, 400 Insufficient Coins
         if httpResponse.statusCode != 200 {
-             throw NSLocalizedString("Failed to acquire deck (Error \(httpResponse.statusCode))", comment: "") as! Error
+             throw APIError.custom(NSLocalizedString("Failed to acquire deck (Error \(httpResponse.statusCode))", comment: ""))
         }
     }
     
@@ -136,13 +146,13 @@ class DeckAPI {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
         }
         
         if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
             return try JSONDecoder().decode(DeckDTO.self, from: data)
         } else {
-             throw NSLocalizedString("Failed to create deck (Error \(httpResponse.statusCode))", comment: "") as! Error
+             throw APIError.custom(NSLocalizedString("Failed to create deck (Error \(httpResponse.statusCode))", comment: ""))
         }
     }
     
@@ -170,11 +180,11 @@ class DeckAPI {
         let (_, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
         }
         
         if httpResponse.statusCode != 200 && httpResponse.statusCode != 201 {
-             throw NSLocalizedString("Failed to add card to deck (Error \(httpResponse.statusCode))", comment: "") as! Error
+             throw APIError.custom(NSLocalizedString("Failed to add card to deck (Error \(httpResponse.statusCode))", comment: ""))
         }
     }
     
@@ -193,7 +203,7 @@ class DeckAPI {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
         }
         
         if httpResponse.statusCode == 200 {
@@ -203,7 +213,7 @@ class DeckAPI {
             let msgObj = try JSONDecoder().decode(MessageResponse.self, from: data)
             return msgObj.message
         } else {
-             throw NSLocalizedString("Failed to generate AI mnemonic (Error \(httpResponse.statusCode))", comment: "") as! Error
+             throw APIError.custom(NSLocalizedString("Failed to generate AI mnemonic (Error \(httpResponse.statusCode))", comment: ""))
         }
     }
     
@@ -222,14 +232,14 @@ class DeckAPI {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
         }
         
         if httpResponse.statusCode == 200 {
             let res = try JSONDecoder().decode(BrainDumpResponse.self, from: data)
             return res.cards
         } else {
-             throw NSLocalizedString("Failed to generate cards (Error \(httpResponse.statusCode))", comment: "") as! Error
+             throw APIError.custom(NSLocalizedString("Failed to generate cards (Error \(httpResponse.statusCode))", comment: ""))
         }
     }
 }

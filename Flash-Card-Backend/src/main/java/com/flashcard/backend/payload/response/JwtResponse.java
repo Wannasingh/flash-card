@@ -7,6 +7,7 @@ import java.util.List;
 @Data
 public class JwtResponse {
     private String token;
+    private String refreshToken;
     private String type = "Bearer";
     private Long id;
     private String username;
@@ -20,16 +21,9 @@ public class JwtResponse {
     private String activeAuraCode;
     private String activeSkinCode;
 
-    public JwtResponse(String accessToken, Long id, String username, String email, String displayName, String imageUrl, List<String> roles, Long totalXP, Long weeklyXP) {
-        this(accessToken, id, username, email, displayName, imageUrl, roles, totalXP, weeklyXP, null, null, null);
-    }
-
-    public JwtResponse(String accessToken, Long id, String username, String email, String displayName, String imageUrl, List<String> roles, Long totalXP, Long weeklyXP, List<com.flashcard.backend.user.Badge> badges) {
-        this(accessToken, id, username, email, displayName, imageUrl, roles, totalXP, weeklyXP, badges, null, null);
-    }
-
-    public JwtResponse(String accessToken, Long id, String username, String email, String displayName, String imageUrl, List<String> roles, Long totalXP, Long weeklyXP, List<com.flashcard.backend.user.Badge> badges, String activeAuraCode, String activeSkinCode) {
+    public JwtResponse(String accessToken, String refreshToken, Long id, String username, String email, String displayName, String imageUrl, List<String> roles, Long totalXP, Long weeklyXP, List<com.flashcard.backend.user.Badge> badges, String activeAuraCode, String activeSkinCode) {
         this.token = accessToken;
+        this.refreshToken = refreshToken;
         this.id = id;
         this.username = username;
         this.email = email;
@@ -43,7 +37,21 @@ public class JwtResponse {
         this.activeSkinCode = activeSkinCode;
     }
 
+    // Convenience constructor without refresh token (internal use / profile fetch)
+    public JwtResponse(String accessToken, Long id, String username, String email, String displayName, String imageUrl, List<String> roles, Long totalXP, Long weeklyXP, List<com.flashcard.backend.user.Badge> badges, String activeAuraCode, String activeSkinCode) {
+        this(accessToken, null, id, username, email, displayName, imageUrl, roles, totalXP, weeklyXP, badges, activeAuraCode, activeSkinCode);
+    }
+
+    public JwtResponse(String accessToken, Long id, String username, String email, String displayName, String imageUrl, List<String> roles, Long totalXP, Long weeklyXP) {
+        this(accessToken, null, id, username, email, displayName, imageUrl, roles, totalXP, weeklyXP, null, null, null);
+    }
+
+    public JwtResponse(String accessToken, Long id, String username, String email, String displayName, String imageUrl, List<String> roles, Long totalXP, Long weeklyXP, List<com.flashcard.backend.user.Badge> badges) {
+        this(accessToken, null, id, username, email, displayName, imageUrl, roles, totalXP, weeklyXP, badges, null, null);
+    }
+
     public JwtResponse(String accessToken, Long id, String username, String email, String displayName, String imageUrl, List<String> roles) {
-        this(accessToken, id, username, email, displayName, imageUrl, roles, 0L, 0L, null, null, null);
+        this(accessToken, null, id, username, email, displayName, imageUrl, roles, 0L, 0L, null, null, null);
     }
 }
+

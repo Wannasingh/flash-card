@@ -2,6 +2,7 @@ import Foundation
 
 struct JwtResponse: Codable {
     let token: String?
+    let refreshToken: String?
     let type: String?
     let id: Int64
     let username: String

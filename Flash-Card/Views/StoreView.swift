@@ -73,6 +73,7 @@ struct StoreView: View {
         }
     }
     
+    @MainActor
     private func loadData() async {
         do {
             items = try await StoreAPI.shared.getItems()

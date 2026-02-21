@@ -27,6 +27,8 @@
 		0C55678E2F48F569005A949A /* Flash-Card.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Flash-Card.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C5567A02F48F56A005A949A /* Flash-CardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Flash-CardTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C5567AA2F48F56A005A949A /* Flash-CardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Flash-CardUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3DE25787DA9BEAFFD05FA568 /* Debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Configs/Debug.xcconfig; sourceTree = "<group>"; };
+		8C5F14D4F4192602C6BE21AC /* Release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Configs/Release.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -79,6 +81,7 @@
 				0C5567A32F48F56A005A949A /* Flash-CardTests */,
 				0C5567AD2F48F56A005A949A /* Flash-CardUITests */,
 				0C55678F2F48F569005A949A /* Products */,
+				DCF5DD19FCB7160EDDFBC05D /* Configs */,
 			);
 			sourceTree = "<group>";
 		};
@@ -90,6 +93,15 @@
 				0C5567AA2F48F56A005A949A /* Flash-CardUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DCF5DD19FCB7160EDDFBC05D /* Configs */ = {
+			isa = PBXGroup;
+			children = (
+				3DE25787DA9BEAFFD05FA568 /* Debug.xcconfig */,
+				8C5F14D4F4192602C6BE21AC /* Release.xcconfig */,
+			);
+			name = Configs;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -111,8 +123,6 @@
 				0C5567902F48F569005A949A /* Flash-Card */,
 			);
 			name = "Flash-Card";
-			packageProductDependencies = (
-			);
 			productName = "Flash-Card";
 			productReference = 0C55678E2F48F569005A949A /* Flash-Card.app */;
 			productType = "com.apple.product-type.application";
@@ -134,8 +144,6 @@
 				0C5567A32F48F56A005A949A /* Flash-CardTests */,
 			);
 			name = "Flash-CardTests";
-			packageProductDependencies = (
-			);
 			productName = "Flash-CardTests";
 			productReference = 0C5567A02F48F56A005A949A /* Flash-CardTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -157,8 +165,6 @@
 				0C5567AD2F48F56A005A949A /* Flash-CardUITests */,
 			);
 			name = "Flash-CardUITests";
-			packageProductDependencies = (
-			);
 			productName = "Flash-CardUITests";
 			productReference = 0C5567AA2F48F56A005A949A /* Flash-CardUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -271,6 +277,7 @@
 /* Begin XCBuildConfiguration section */
 		0C5567B22F48F56A005A949A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3DE25787DA9BEAFFD05FA568 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -333,6 +340,7 @@
 		};
 		0C5567B32F48F56A005A949A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8C5F14D4F4192602C6BE21AC /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -388,6 +396,7 @@
 		};
 		0C5567B52F48F56A005A949A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3DE25787DA9BEAFFD05FA568 /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -434,6 +443,7 @@
 		};
 		0C5567B62F48F56A005A949A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8C5F14D4F4192602C6BE21AC /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

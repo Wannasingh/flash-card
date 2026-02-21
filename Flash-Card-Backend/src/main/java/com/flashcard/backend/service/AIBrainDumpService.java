@@ -7,7 +7,6 @@ import com.flashcard.backend.payload.request.BrainDumpRequest;
 import com.flashcard.backend.payload.response.BrainDumpCardDto;
 import com.flashcard.backend.payload.response.BrainDumpResponse;
 import org.springframework.ai.chat.ChatClient;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

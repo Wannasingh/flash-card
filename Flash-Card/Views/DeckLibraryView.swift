@@ -21,6 +21,7 @@ struct DeckLibraryView: View {
         GridItem(.adaptive(minimum: 150), spacing: 16)
     ]
     
+    @MainActor
     func loadLibrary() async {
         guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
             self.errorMessage = "Please log in to view your arsenal."
@@ -127,10 +128,8 @@ struct DeckLibraryView: View {
             }
             .navigationTitle("Library")
             .navigationBarHidden(true)
-            .onAppear {
-                Task {
-                    await loadLibrary()
-                }
+            .task {
+                await loadLibrary()
             }
         }
     }

@@ -23,10 +23,12 @@ import org.springframework.stereotype.Service;
 import java.util.Locale;
 import java.util.HashSet;
 import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class AuthService {
 
         @Autowired
@@ -45,9 +47,12 @@ public class AuthService {
         JwtUtils jwtUtils;
 
         @Autowired
+        RefreshTokenService refreshTokenService;
+
+        @Autowired
         SupabaseStorageService storageService;
 
-        public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
+        public ResponseEntity<?> authenticateUser(LoginRequest loginRequest, HttpServletRequest request) {
                 String username = loginRequest.getUsername() == null ? null : loginRequest.getUsername().trim();
                 Authentication authentication = authenticationManager.authenticate(
                                 new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
@@ -61,23 +66,35 @@ public class AuthService {
                                 .collect(Collectors.toList());
 
                 String imageUrl = userDetails.getImageUrl();
-                try {
-                    imageUrl = storageService.getSignedUrl(imageUrl);
-                } catch (Exception e) {
-                    System.err.println("Error signing URL in AuthService: " + e.getMessage());
+                if (imageUrl != null && !imageUrl.isEmpty() && !imageUrl.startsWith("http")) {
+                    if (request != null) {
+                        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+                        imageUrl = baseUrl + "/api/user/profile/" + userDetails.getId() + "/image";
+                    } else {
+                        try {
+                            imageUrl = storageService.getSignedUrl(imageUrl);
+                        } catch (Exception e) {
+                            System.err.println("Error signing URL in AuthService: " + e.getMessage());
+                        }
+                    }
                 }
+
+                // Generate refresh token
+                User user = userRepository.findById(userDetails.getId())
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+                String refreshTokenString = refreshTokenService.createRefreshToken(user).getToken();
 
                 ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(jwt);
 
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                                .body(new JwtResponse(jwt,
+                                .body(new JwtResponse(jwt, refreshTokenString,
                                                 userDetails.getId(),
                                                 userDetails.getUsername(),
                                                 userDetails.getEmail(),
                                                 userDetails.getDisplayName(),
                                                 imageUrl,
-                                                roles));
+                                                roles, 0L, 0L, null, null, null));
         }
 
         public ResponseEntity<?> registerUser(SignupRequest signupRequest) {

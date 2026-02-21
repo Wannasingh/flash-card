@@ -43,7 +43,8 @@ final class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate,
             return UIWindow(windowScene: scene)
         }
         
-        return UIWindow(frame: .zero)
+        // This fallback is unreachable in a live app — all paths above handle real scenes.
+        fatalError("No UIWindowScene available — should never happen in a running iOS app.")
     }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {

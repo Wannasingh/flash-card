@@ -29,7 +29,8 @@ class DuelViewModel: ObservableObject {
     }
     
     private func connect(token: String) {
-        let url = URL(string: "ws://localhost:8080/ws-duel")!
+        let wsURLString = AppConfig.backendBaseURL.absoluteString.replacingOccurrences(of: "http", with: "ws")
+        let url = URL(string: "\(wsURLString)/ws-duel")!
         webSocketTask = URLSession.shared.webSocketTask(with: url)
         webSocketTask?.resume()
         

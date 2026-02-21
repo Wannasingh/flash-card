@@ -85,19 +85,24 @@ public class JwtUtils {
     }
 
     public boolean validateJwtToken(String authToken) {
+        // NOTE: We re-throw typed JWT exceptions here so that AuthTokenFilter's individual
+        // catch blocks can respond with the correct 401 JSON for each error type.
+        // Only IllegalArgumentException (empty string) is swallowed, as it's not security-relevant.
         try {
             Jwts.parserBuilder().setSigningKey(key()).build().parse(authToken);
             return true;
-        } catch (MalformedJwtException e) {
-            logger.error("Invalid JWT token: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
             logger.error("JWT token is expired: {}", e.getMessage());
+            throw e; // re-throw so AuthTokenFilter sends 401 "Token expired"
+        } catch (MalformedJwtException e) {
+            logger.error("Invalid JWT token: {}", e.getMessage());
+            throw e; // re-throw so AuthTokenFilter sends 401 "Invalid token format"
         } catch (UnsupportedJwtException e) {
             logger.error("JWT token is unsupported: {}", e.getMessage());
+            throw new MalformedJwtException("Unsupported JWT: " + e.getMessage()); // treat same as malformed
         } catch (IllegalArgumentException e) {
             logger.error("JWT claims string is empty: {}", e.getMessage());
         }
-
         return false;
     }
 }

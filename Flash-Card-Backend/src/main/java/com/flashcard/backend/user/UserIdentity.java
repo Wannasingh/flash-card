@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 @Entity
-@Table(name = "user_identities", uniqueConstraints = {
+@Table(name = "user_identities", schema = "flashcard", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "provider", "provider_user_id" }),
         @UniqueConstraint(columnNames = { "user_id", "provider" })
 })

@@ -4,7 +4,7 @@ class StudyAPI {
     static let shared = StudyAPI()
     
     // Using the proxy URL defined in AppConfig or a raw string for now
-    private let baseURL = "http://localhost:8080/api/study"
+    private let baseURL = "\(AppConfig.backendBaseURL)/api/study"
     
     func fetchDueCards(token: String) async throws -> [CardModel] {
         guard let url = URL(string: "\(baseURL)/due-cards") else {

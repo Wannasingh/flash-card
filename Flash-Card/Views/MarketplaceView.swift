@@ -9,6 +9,7 @@ struct MarketplaceView: View {
         GridItem(.adaptive(minimum: 150), spacing: 16)
     ]
     
+    @MainActor
     func loadMarketplace() async {
         guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
             self.errorMessage = "Please log in to use the Marketplace."
@@ -98,8 +99,8 @@ struct MarketplaceView: View {
             }
             .navigationTitle("Marketplace")
             .navigationBarHidden(true)
-            .onAppear {
-                Task { await loadMarketplace() }
+            .task {
+                await loadMarketplace()
             }
         }
     }

@@ -107,10 +107,29 @@ final class AuthAPI {
         return request
     }
 
-    private func performRequest<T: Decodable>(_ request: URLRequest, response: T.Type) async throws -> T {
+    private func performRequest<T: Decodable>(_ request: URLRequest, response: T.Type, isRetry: Bool = false) async throws -> T {
         let (data, urlResponse) = try await session.data(for: request)
         let http = urlResponse as? HTTPURLResponse
         let status = http?.statusCode ?? 0
+
+        // On 401: try silent token refresh once, then retry the original request
+        if status == 401 && !isRetry {
+            do {
+                try await refreshAccessToken()
+                // Rebuild the request with the new access token and retry
+                var retried = request
+                if let newToken = getAuthToken() {
+                    retried.setValue("Bearer \(newToken)", forHTTPHeaderField: "Authorization")
+                }
+                return try await performRequest(retried, response: response, isRetry: true)
+            } catch {
+                // Refresh failed (token expired or revoked) → force logout
+                await MainActor.run { SessionStore.shared.handleUnauthorized() }
+                throw NSError(domain: "AuthAPI", code: 401, userInfo: [
+                    NSLocalizedDescriptionKey: "Session expired. Please login again."
+                ])
+            }
+        }
 
         if (200..<300).contains(status) {
             return try JSONDecoder().decode(T.self, from: data)
@@ -126,4 +145,39 @@ final class AuthAPI {
             NSLocalizedDescriptionKey: "Request failed with status \(status)"
         ])
     }
+
+    /// Called automatically when a 401 is received. Exchanges the stored refresh token
+    /// for a new access token and saves it to Keychain. Throws if refresh is not possible.
+    func refreshAccessToken() async throws {
+        guard let refreshToken = try? KeychainStore.shared.getString(forKey: "refreshToken"),
+              !refreshToken.isEmpty else {
+            throw NSError(domain: "AuthAPI", code: 401, userInfo: [
+                NSLocalizedDescriptionKey: "No refresh token available"
+            ])
+        }
+
+        let baseURL = AppConfig.backendBaseURL
+        var request = URLRequest(url: baseURL.appendingPathComponent("/api/auth/refresh"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["refreshToken": refreshToken])
+
+        let (data, urlResponse) = try await session.data(for: request)
+        let status = (urlResponse as? HTTPURLResponse)?.statusCode ?? 0
+
+        guard (200..<300).contains(status) else {
+            throw NSError(domain: "AuthAPI", code: status, userInfo: [
+                NSLocalizedDescriptionKey: "Refresh token rejected"
+            ])
+        }
+
+        let refreshResponse = try JSONDecoder().decode(JwtResponse.self, from: data)
+        if let newAccessToken = refreshResponse.token {
+            try KeychainStore.shared.setString(newAccessToken, forKey: "accessToken")
+        }
+        if let newRefreshToken = refreshResponse.refreshToken {
+            try KeychainStore.shared.setString(newRefreshToken, forKey: "refreshToken")
+        }
+    }
 }
+
