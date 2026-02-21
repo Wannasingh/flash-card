@@ -1,12 +1,7 @@
 import SwiftUI
 
 struct StudySessionView: View {
-    // Top card is the LAST item in the array for SwiftUI's ZStack mapping
-    @State private var mockCards: [CardModel] = [
-        CardModel(frontText: "Tinder-Style Setup", backText: "Uses DragGesture and Spring Animations to make reviewing feel less like a chore and more like a game."),
-        CardModel(frontText: "Dark Mode 🌙", backText: "Reduces eye strain for late-night study sessions (classic Gen-Z trait)."),
-        CardModel(frontText: "Gamification", backText: "Earning coins and streaks for swiping consistently.")
-    ].reversed()
+    @StateObject private var viewModel = StudyViewModel()
     
     var body: some View {
         ZStack {
@@ -19,14 +14,14 @@ struct StudySessionView: View {
                         Text("Session 🔥")
                             .cyberpunkFont(size: 28)
                             .foregroundColor(Theme.textPrimary)
-                        Text("Tinder Mode Active")
+                        Text("Spaced Repetition Active")
                             .font(.caption)
                             .foregroundColor(Theme.textSecondary)
                     }
                     Spacer()
                     
                     VStack(alignment: .trailing) {
-                        Text("\(mockCards.count)")
+                        Text("\(viewModel.dueCards.count)")
                             .cyberpunkFont(size: 24)
                             .foregroundColor(Theme.cyanAccent)
                         Text("CARDS LEFT")
@@ -40,7 +35,11 @@ struct StudySessionView: View {
                 Spacer()
                 
                 // Card Stack Area
-                if mockCards.isEmpty {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(2)
+                        .tint(Theme.neonPink)
+                } else if viewModel.dueCards.isEmpty {
                     VStack(spacing: 24) {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 70))
@@ -51,7 +50,7 @@ struct StudySessionView: View {
                             .cyberpunkFont(size: 28)
                             .foregroundColor(Theme.textPrimary)
                         
-                        Text("You've conquered your due reviews. Enjoy your day! 🍹")
+                        Text(viewModel.errorMessage ?? "You've conquered your due reviews. Enjoy your day! 🍹")
                             .foregroundColor(Theme.textSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
@@ -59,7 +58,7 @@ struct StudySessionView: View {
                 } else {
                     ZStack {
                         // Render cards. ZStack puts the last item on top.
-                        ForEach(mockCards) { card in
+                        ForEach(viewModel.dueCards) { card in
                             SwipeCardView(card: card) { quality in
                                 handleSwipe(card: card, quality: quality)
                             }
@@ -70,7 +69,7 @@ struct StudySessionView: View {
                 Spacer()
                 
                 // Bottom Legend / Instructions
-                if !mockCards.isEmpty {
+                if !viewModel.dueCards.isEmpty {
                     HStack {
                         VStack(spacing: 6) {
                             Image(systemName: "arrow.uturn.left.circle.fill")
@@ -97,18 +96,20 @@ struct StudySessionView: View {
                 }
             }
         }
+        .onAppear {
+            Task {
+                await viewModel.fetchDueCards()
+            }
+        }
     }
     
     private func handleSwipe(card: CardModel, quality: Int) {
-        // Quality 2 = Forget/Left, Quality 5 = Remember/Right
-        
+        // Haptic Feedback based on success
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(quality > 3 ? .success : .warning)
         
-        // Remove the top card from the deck array to visually "pop" it out
-        withAnimation(.easeOut) {
-            mockCards.removeAll { $0.id == card.id }
-        }
+        // Pass to ViewModel to remove from UI and Fire to Backend
+        viewModel.submitReview(for: card, quality: quality)
     }
 }
 

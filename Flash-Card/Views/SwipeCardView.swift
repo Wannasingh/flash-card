@@ -1,10 +1,18 @@
 import SwiftUI
 
-// Mock model for Phase 3 UI testing before connecting APIs
+// Model for Phase 4 UI mapping
 struct CardModel: Identifiable {
-    let id = UUID()
+    let id: UUID
+    let backendId: Int? // Required for API syncing
     let frontText: String
     let backText: String
+    
+    init(id: UUID = UUID(), backendId: Int? = nil, frontText: String, backText: String) {
+        self.id = id
+        self.backendId = backendId
+        self.frontText = frontText
+        self.backText = backText
+    }
 }
 
 struct SwipeCardView: View {
