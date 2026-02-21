@@ -112,9 +112,9 @@ fastlane/test_output
 iOSInjectionProject/
 
 # --- Secrets (Do NOT commit these) ---
-flashcard-backend/.env
-!flashcard-backend/.env.example
+Flash-Card-Backend/.env
+!Flash-Card-Backend/.env.example
 Configs/Secrets.xcconfig
 
 # --- Docker ---
-flashcard-backend/target/
+Flash-Card-Backend/target/

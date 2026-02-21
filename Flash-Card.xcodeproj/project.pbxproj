@@ -12,37 +12,37 @@
 			containerPortal = 0C5567862F48F569005A949A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 0C55678D2F48F569005A949A;
-			remoteInfo = "Pream Flash Card";
+			remoteInfo = "Flash-Card";
 		};
 		0C5567AB2F48F56A005A949A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0C5567862F48F569005A949A /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 0C55678D2F48F569005A949A;
-			remoteInfo = "Pream Flash Card";
+			remoteInfo = "Flash-Card";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0C55678E2F48F569005A949A /* Pream Flash Card.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Pream Flash Card.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0C5567A02F48F56A005A949A /* Pream Flash CardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Pream Flash CardTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0C5567AA2F48F56A005A949A /* Pream Flash CardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Pream Flash CardUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C55678E2F48F569005A949A /* Flash-Card.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Flash-Card.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C5567A02F48F56A005A949A /* Flash-CardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Flash-CardTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C5567AA2F48F56A005A949A /* Flash-CardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Flash-CardUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		0C5567902F48F569005A949A /* Pream Flash Card */ = {
+		0C5567902F48F569005A949A /* Flash-Card */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Pream Flash Card";
+			path = "Flash-Card";
 			sourceTree = "<group>";
 		};
-		0C5567A32F48F56A005A949A /* Pream Flash CardTests */ = {
+		0C5567A32F48F56A005A949A /* Flash-CardTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Pream Flash CardTests";
+			path = "Flash-CardTests";
 			sourceTree = "<group>";
 		};
-		0C5567AD2F48F56A005A949A /* Pream Flash CardUITests */ = {
+		0C5567AD2F48F56A005A949A /* Flash-CardUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Pream Flash CardUITests";
+			path = "Flash-CardUITests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,9 +75,9 @@
 		0C5567852F48F569005A949A = {
 			isa = PBXGroup;
 			children = (
-				0C5567902F48F569005A949A /* Pream Flash Card */,
-				0C5567A32F48F56A005A949A /* Pream Flash CardTests */,
-				0C5567AD2F48F56A005A949A /* Pream Flash CardUITests */,
+				0C5567902F48F569005A949A /* Flash-Card */,
+				0C5567A32F48F56A005A949A /* Flash-CardTests */,
+				0C5567AD2F48F56A005A949A /* Flash-CardUITests */,
 				0C55678F2F48F569005A949A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,9 +85,9 @@
 		0C55678F2F48F569005A949A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0C55678E2F48F569005A949A /* Pream Flash Card.app */,
-				0C5567A02F48F56A005A949A /* Pream Flash CardTests.xctest */,
-				0C5567AA2F48F56A005A949A /* Pream Flash CardUITests.xctest */,
+				0C55678E2F48F569005A949A /* Flash-Card.app */,
+				0C5567A02F48F56A005A949A /* Flash-CardTests.xctest */,
+				0C5567AA2F48F56A005A949A /* Flash-CardUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		0C55678D2F48F569005A949A /* Pream Flash Card */ = {
+		0C55678D2F48F569005A949A /* Flash-Card */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0C5567B42F48F56A005A949A /* Build configuration list for PBXNativeTarget "Pream Flash Card" */;
+			buildConfigurationList = 0C5567B42F48F56A005A949A /* Build configuration list for PBXNativeTarget "Flash-Card" */;
 			buildPhases = (
 				0C55678A2F48F569005A949A /* Sources */,
 				0C55678B2F48F569005A949A /* Frameworks */,
@@ -108,18 +108,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				0C5567902F48F569005A949A /* Pream Flash Card */,
+				0C5567902F48F569005A949A /* Flash-Card */,
 			);
-			name = "Pream Flash Card";
+			name = "Flash-Card";
 			packageProductDependencies = (
 			);
-			productName = "Pream Flash Card";
-			productReference = 0C55678E2F48F569005A949A /* Pream Flash Card.app */;
+			productName = "Flash-Card";
+			productReference = 0C55678E2F48F569005A949A /* Flash-Card.app */;
 			productType = "com.apple.product-type.application";
 		};
-		0C55679F2F48F56A005A949A /* Pream Flash CardTests */ = {
+		0C55679F2F48F56A005A949A /* Flash-CardTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0C5567B72F48F56A005A949A /* Build configuration list for PBXNativeTarget "Pream Flash CardTests" */;
+			buildConfigurationList = 0C5567B72F48F56A005A949A /* Build configuration list for PBXNativeTarget "Flash-CardTests" */;
 			buildPhases = (
 				0C55679C2F48F56A005A949A /* Sources */,
 				0C55679D2F48F56A005A949A /* Frameworks */,
@@ -131,18 +131,18 @@
 				0C5567A22F48F56A005A949A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				0C5567A32F48F56A005A949A /* Pream Flash CardTests */,
+				0C5567A32F48F56A005A949A /* Flash-CardTests */,
 			);
-			name = "Pream Flash CardTests";
+			name = "Flash-CardTests";
 			packageProductDependencies = (
 			);
-			productName = "Pream Flash CardTests";
-			productReference = 0C5567A02F48F56A005A949A /* Pream Flash CardTests.xctest */;
+			productName = "Flash-CardTests";
+			productReference = 0C5567A02F48F56A005A949A /* Flash-CardTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		0C5567A92F48F56A005A949A /* Pream Flash CardUITests */ = {
+		0C5567A92F48F56A005A949A /* Flash-CardUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 0C5567BA2F48F56A005A949A /* Build configuration list for PBXNativeTarget "Pream Flash CardUITests" */;
+			buildConfigurationList = 0C5567BA2F48F56A005A949A /* Build configuration list for PBXNativeTarget "Flash-CardUITests" */;
 			buildPhases = (
 				0C5567A62F48F56A005A949A /* Sources */,
 				0C5567A72F48F56A005A949A /* Frameworks */,
@@ -154,13 +154,13 @@
 				0C5567AC2F48F56A005A949A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				0C5567AD2F48F56A005A949A /* Pream Flash CardUITests */,
+				0C5567AD2F48F56A005A949A /* Flash-CardUITests */,
 			);
-			name = "Pream Flash CardUITests";
+			name = "Flash-CardUITests";
 			packageProductDependencies = (
 			);
-			productName = "Pream Flash CardUITests";
-			productReference = 0C5567AA2F48F56A005A949A /* Pream Flash CardUITests.xctest */;
+			productName = "Flash-CardUITests";
+			productReference = 0C5567AA2F48F56A005A949A /* Flash-CardUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 0C5567892F48F569005A949A /* Build configuration list for PBXProject "Pream Flash Card" */;
+			buildConfigurationList = 0C5567892F48F569005A949A /* Build configuration list for PBXProject "Flash-Card" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -200,9 +200,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				0C55678D2F48F569005A949A /* Pream Flash Card */,
-				0C55679F2F48F56A005A949A /* Pream Flash CardTests */,
-				0C5567A92F48F56A005A949A /* Pream Flash CardUITests */,
+				0C55678D2F48F569005A949A /* Flash-Card */,
+				0C55679F2F48F56A005A949A /* Flash-CardTests */,
+				0C5567A92F48F56A005A949A /* Flash-CardUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +258,12 @@
 /* Begin PBXTargetDependency section */
 		0C5567A22F48F56A005A949A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 0C55678D2F48F569005A949A /* Pream Flash Card */;
+			target = 0C55678D2F48F569005A949A /* Flash-Card */;
 			targetProxy = 0C5567A12F48F56A005A949A /* PBXContainerItemProxy */;
 		};
 		0C5567AC2F48F56A005A949A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 0C55678D2F48F569005A949A /* Pream Flash Card */;
+			target = 0C55678D2F48F569005A949A /* Flash-Card */;
 			targetProxy = 0C5567AB2F48F56A005A949A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -498,7 +498,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pream Flash Card.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pream Flash Card";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Flash-Card.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Flash-Card";
 				XROS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Debug;
@@ -524,7 +524,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pream Flash Card.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pream Flash Card";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Flash-Card.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Flash-Card";
 				XROS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Release;
@@ -549,7 +549,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = "Pream Flash Card";
+				TEST_TARGET_NAME = "Flash-Card";
 				XROS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Debug;
@@ -574,7 +574,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_TARGET_NAME = "Pream Flash Card";
+				TEST_TARGET_NAME = "Flash-Card";
 				XROS_DEPLOYMENT_TARGET = 26.2;
 			};
 			name = Release;
@@ -582,7 +582,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		0C5567892F48F569005A949A /* Build configuration list for PBXProject "Pream Flash Card" */ = {
+		0C5567892F48F569005A949A /* Build configuration list for PBXProject "Flash-Card" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0C5567B22F48F56A005A949A /* Debug */,
@@ -591,7 +591,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0C5567B42F48F56A005A949A /* Build configuration list for PBXNativeTarget "Pream Flash Card" */ = {
+		0C5567B42F48F56A005A949A /* Build configuration list for PBXNativeTarget "Flash-Card" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0C5567B52F48F56A005A949A /* Debug */,
@@ -600,7 +600,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0C5567B72F48F56A005A949A /* Build configuration list for PBXNativeTarget "Pream Flash CardTests" */ = {
+		0C5567B72F48F56A005A949A /* Build configuration list for PBXNativeTarget "Flash-CardTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0C5567B82F48F56A005A949A /* Debug */,
@@ -609,7 +609,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		0C5567BA2F48F56A005A949A /* Build configuration list for PBXNativeTarget "Pream Flash CardUITests" */ = {
+		0C5567BA2F48F56A005A949A /* Build configuration list for PBXNativeTarget "Flash-CardUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				0C5567BB2F48F56A005A949A /* Debug */,

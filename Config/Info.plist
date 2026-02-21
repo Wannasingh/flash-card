@@ -68,7 +68,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>$(GOOGLE_REVERSE_CLIENT_ID)</string>
-				<string>preamflashcard</string>
+				<string>flashcard</string>
 			</array>
 		</dict>
 	</array>

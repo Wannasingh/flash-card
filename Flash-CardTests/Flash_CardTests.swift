@@ -1,13 +1,13 @@
 //
-//  Pream_Flash_CardTests.swift
-//  Pream Flash CardTests
+//  Flash_CardTests.swift
+//  Flash-CardTests
 //
 //  Created by WANNASINGH KHANSOPHON on 21/2/2569 BE.
 //
 
 import XCTest
 
-final class Pream_Flash_CardTests: XCTestCase {
+final class Flash_CardTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

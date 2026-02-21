@@ -1,6 +1,6 @@
 //
 //  Persistence.swift
-//  Pream Flash Card
+//  Flash-Card
 //
 //  Created by WANNASINGH KHANSOPHON on 21/2/2569 BE.
 //
@@ -32,7 +32,7 @@ struct PersistenceController {
     let container: NSPersistentContainer
 
     init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "Pream_Flash_Card")
+        container = NSPersistentContainer(name: "Flash_Card")
         if inMemory {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }

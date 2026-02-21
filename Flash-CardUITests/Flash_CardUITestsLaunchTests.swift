@@ -1,13 +1,13 @@
 //
-//  Pream_Flash_CardUITestsLaunchTests.swift
-//  Pream Flash CardUITests
+//  Flash_CardUITestsLaunchTests.swift
+//  Flash-CardUITests
 //
 //  Created by WANNASINGH KHANSOPHON on 21/2/2569 BE.
 //
 
 import XCTest
 
-final class Pream_Flash_CardUITestsLaunchTests: XCTestCase {
+final class Flash_CardUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
