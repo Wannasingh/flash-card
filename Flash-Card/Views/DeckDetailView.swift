@@ -8,6 +8,7 @@ struct DeckDetailView: View {
     @State private var isAcquiring = false
     @State private var acquireError: String?
     @State private var hasAcquired = false // local override after purchase
+    @State private var showingCardEditor = false
     
     // Stats for UI before API hookup
     let averageRating: Double = 4.8
@@ -115,19 +116,33 @@ struct DeckDetailView: View {
                 Spacer()
                 VStack {
                     if isOwned || hasAcquired {
-                        Button(action: {
-                            // In a real flow, this could set the Global Current Deck ID
-                            // and jump back to the Study Tab
-                            print("Start Studying Deck!")
-                        }) {
-                            Text("ENTER THE MATRIX (STUDY)")
-                                .cyberpunkFont(size: 20)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Theme.neonGradient)
-                                .cornerRadius(16)
-                                .shadow(color: Theme.neonPink.opacity(0.5), radius: 10, y: 5)
+                        HStack(spacing: 16) {
+                            Button(action: {
+                                showingCardEditor = true
+                            }) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(Theme.cyberYellow)
+                                    .padding()
+                                    .background(Theme.cyberCard)
+                                    .cornerRadius(16)
+                                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.cyberYellow.opacity(0.3), lineWidth: 1))
+                            }
+                            
+                            Button(action: {
+                                // In a real flow, this could set the Global Current Deck ID
+                                // and jump back to the Study Tab
+                                print("Start Studying Deck!")
+                            }) {
+                                Text("STUDY DECK")
+                                    .cyberpunkFont(size: 20)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Theme.neonGradient)
+                                    .cornerRadius(16)
+                                    .shadow(color: Theme.neonPink.opacity(0.5), radius: 10, y: 5)
+                            }
                         }
                     } else {
                         Button(action: {
@@ -162,6 +177,16 @@ struct DeckDetailView: View {
             .ignoresSafeArea(edges: .bottom)
         }
         .navigationBarHidden(true)
+        .sheet(isPresented: $showingCardEditor) {
+            if let targetId = deck.backendId {
+                CardEditorView(deckId: targetId)
+            } else {
+                // Fallback for mocked decks without ID
+                Text("Error: Deck ID missing. Cannot add cards.")
+                    .foregroundColor(Theme.neonPink)
+                    .background(Theme.cyberDark)
+            }
+        }
     }
     
     private func handleAcquire() async {

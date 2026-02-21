@@ -124,4 +124,37 @@ class DeckAPI {
              throw NSLocalizedString("Failed to create deck (Error \(httpResponse.statusCode))", comment: "") as! Error
         }
     }
+    
+    // Add a Card to an existing Deck
+    func addCardToDeck(token: String, deckId: Int, frontContent: String, backContent: String, frontMediaUrl: String?, backMediaUrl: String?) async throws {
+        guard let url = URL(string: "\(baseURL)/\(deckId)/cards") else {
+            throw NSLocalizedString("Invalid URL", comment: "") as! Error
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        var payload: [String: Any] = [
+            "deckId": deckId,
+            "frontContent": frontContent,
+            "backContent": backContent
+        ]
+        
+        if let fmUrl = frontMediaUrl { payload["frontMediaUrl"] = fmUrl }
+        if let bmUrl = backMediaUrl  { payload["backMediaUrl"] = bmUrl }
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        
+        let (_, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+        }
+        
+        if httpResponse.statusCode != 200 && httpResponse.statusCode != 201 {
+             throw NSLocalizedString("Failed to add card to deck (Error \(httpResponse.statusCode))", comment: "") as! Error
+        }
+    }
 }

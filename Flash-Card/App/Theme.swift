@@ -11,6 +11,7 @@ enum Theme {
     static let cyanAccent = Color(red: 0.0, green: 0.9, blue: 1.0)     // #00E5FF
     static let electricBlue = Color(red: 0.0, green: 0.39, blue: 1.0)  // #0063FF
     static let cyberYellow = Color(red: 1.0, green: 0.9, blue: 0.0)    // #FFE600
+    static let matrixGreen = Color(red: 0.0, green: 1.0, blue: 0.0)    // #00FF00
     
     // Text
     static let textPrimary = Color.white
