@@ -11,6 +11,9 @@ class StudyViewModel: ObservableObject {
     private let tokenStore = KeychainStore.shared
     
     func fetchDueCards() async {
+        // Try to sync any offline reviews first so we don't fetch cards we've already reviewed offline
+        await StudySyncManager.shared.syncPendingReviews()
+        
         guard let token = try? tokenStore.getString(forKey: "accessToken") else {
             self.errorMessage = "Not logged in"
             self.isLoading = false
@@ -48,7 +51,8 @@ class StudyViewModel: ObservableObject {
                 print("Successfully synced review for card \(backendId) with quality \(quality)")
             } catch {
                 print("Failed to sync review for card \(backendId): \(error)")
-                // Optional: Cache failed syncs for retry later (Commit 8)
+                // Save offline for retry later
+                StudySyncManager.shared.queueReview(cardId: backendId, quality: quality)
             }
         }
     }
