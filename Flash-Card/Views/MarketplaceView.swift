@@ -1,16 +1,40 @@
 import SwiftUI
 
 struct MarketplaceView: View {
-    @State private var trendingDecks: [DeckModel] = [
-        DeckModel(title: "Cyber Security 101", creatorName: "Hak0r", cardCount: 200, price: 500, colorHex: "FF0080"),
-        DeckModel(title: "Anatomy of the Heart", creatorName: "Dr. MedSchool", cardCount: 75, price: 300, colorHex: "0063FF"),
-        DeckModel(title: "Mastering Python", creatorName: "CodeNinja", cardCount: 150, price: 800, colorHex: "FFE600"),
-        DeckModel(title: "JLPT N4 Grammar", creatorName: "Sensei Cyber", cardCount: 120, price: 400, colorHex: "00E5FF")
-    ]
+    @State private var trendingDecks: [DeckModel] = []
+    @State private var isLoading = true
+    @State private var errorMessage: String?
     
     let columns = [
         GridItem(.adaptive(minimum: 150), spacing: 16)
     ]
+    
+    func loadMarketplace() async {
+        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
+            self.errorMessage = "Please log in to use the Marketplace."
+            self.isLoading = false
+            return
+        }
+        
+        do {
+            isLoading = true
+            let dtos = try await DeckAPI.shared.fetchMarketplace(token: token)
+            self.trendingDecks = dtos.map { dto in
+                DeckModel(
+                    backendId: dto.id,
+                    title: dto.title,
+                    creatorName: dto.creatorName,
+                    cardCount: dto.cardCount,
+                    price: dto.priceCoins,
+                    colorHex: dto.customColorHex ?? "FF0080",
+                    description: dto.description
+                )
+            }
+        } catch {
+            self.errorMessage = "Failed to load marketplace."
+        }
+        isLoading = false
+    }
     
     var body: some View {
         NavigationView {
@@ -60,7 +84,10 @@ struct MarketplaceView: View {
                         // Discover Grid
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(trendingDecks) { deck in
-                                DeckCardView(deck: deck, isOwned: false)
+                                NavigationLink(destination: DeckDetailView(deck: deck, isOwned: false)) {
+                                    DeckCardView(deck: deck, isOwned: false)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.horizontal)
@@ -70,6 +97,9 @@ struct MarketplaceView: View {
             }
             .navigationTitle("Marketplace")
             .navigationBarHidden(true)
+            .onAppear {
+                Task { await loadMarketplace() }
+            }
         }
     }
 }

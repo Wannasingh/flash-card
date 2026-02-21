@@ -3,23 +3,52 @@ import SwiftUI
 // Mock model for Phase 5 UI before hooking up APIs
 struct DeckModel: Identifiable {
     let id = UUID()
+    let backendId: Int?
     let title: String
     let creatorName: String
     let cardCount: Int
     let price: Int // 0 if free/owned
     let colorHex: String
+    let description: String?
 }
 
 struct DeckLibraryView: View {
-    @State private var ownedDecks: [DeckModel] = [
-        DeckModel(title: "Japanese N5 Vocab", creatorName: "Sensei Cyber", cardCount: 150, price: 0, colorHex: "00E5FF"),
-        DeckModel(title: "React Native Basics", creatorName: "DevMaster", cardCount: 45, price: 0, colorHex: "FF0080"),
-        DeckModel(title: "Historical Dates (World War 2)", creatorName: "HistoryGeek", cardCount: 88, price: 0, colorHex: "FFE600")
-    ]
+    @State private var ownedDecks: [DeckModel] = []
+    @State private var isLoading = true
+    @State private var errorMessage: String?
     
     let columns = [
         GridItem(.adaptive(minimum: 150), spacing: 16)
     ]
+    
+    func loadLibrary() async {
+        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
+            self.errorMessage = "Please log in to view your arsenal."
+            self.isLoading = false
+            return
+        }
+        
+        do {
+            isLoading = true
+            let dtos = try await DeckAPI.shared.fetchMyLibrary(token: token)
+            // Map DTO to UI Model
+            self.ownedDecks = dtos.map { dto in
+                DeckModel(
+                    backendId: dto.id,
+                    title: dto.title,
+                    creatorName: dto.creatorName,
+                    cardCount: dto.cardCount,
+                    price: dto.priceCoins,
+                    colorHex: dto.customColorHex ?? "00E5FF", // Fallback Cyberpunk color
+                    description: dto.description
+                )
+            }
+        } catch {
+            self.errorMessage = "Signal lost. Could not load decks."
+            print(error)
+        }
+        isLoading = false
+    }
     
     var body: some View {
         NavigationView {
@@ -44,7 +73,10 @@ struct DeckLibraryView: View {
                         // Grid of Decks
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(ownedDecks) { deck in
-                                DeckCardView(deck: deck, isOwned: true)
+                                NavigationLink(destination: DeckDetailView(deck: deck, isOwned: true)) {
+                                    DeckCardView(deck: deck, isOwned: true)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                             
                             // "Create New" Button Placeholder
@@ -78,6 +110,11 @@ struct DeckLibraryView: View {
             }
             .navigationTitle("Library")
             .navigationBarHidden(true)
+            .onAppear {
+                Task {
+                    await loadLibrary()
+                }
+            }
         }
     }
 }
