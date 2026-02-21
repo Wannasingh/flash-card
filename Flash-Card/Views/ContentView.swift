@@ -8,13 +8,18 @@ struct ContentView: View {
     @State private var showLoginSignupScreen = false
 
     var body: some View {
-        if session.isLoggedIn {
-            HomeView()
-        } else if showWelcomeScreen {
-            WelcomeView(showWelcomeScreen: $showWelcomeScreen, showLoginSignupScreen: $showLoginSignupScreen)
-        } else {
-            LoginSignupView()
+        Group {
+            if session.isLoggedIn {
+                HomeView()
+            } else if showWelcomeScreen {
+                WelcomeView(showWelcomeScreen: $showWelcomeScreen, showLoginSignupScreen: $showLoginSignupScreen)
+            } else {
+                LoginSignupView()
+            }
         }
+        .preferredColorScheme(.dark)
+        // Ensure background is solid dark across the board
+        .background(Theme.cyberDark.ignoresSafeArea())
     }
 }
 
