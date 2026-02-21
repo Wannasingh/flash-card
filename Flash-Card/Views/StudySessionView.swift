@@ -40,21 +40,7 @@ struct StudySessionView: View {
                         .scaleEffect(2)
                         .tint(Theme.neonPink)
                 } else if viewModel.dueCards.isEmpty {
-                    VStack(spacing: 24) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 70))
-                            .foregroundColor(Theme.cyberYellow)
-                            .shadow(color: Theme.cyberYellow.opacity(0.5), radius: 20)
-                        
-                        Text("All Caught Up!")
-                            .cyberpunkFont(size: 28)
-                            .foregroundColor(Theme.textPrimary)
-                        
-                        Text(viewModel.errorMessage ?? "You've conquered your due reviews. Enjoy your day! 🍹")
-                            .foregroundColor(Theme.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                    }
+                    StudySessionSummaryView()
                 } else {
                     ZStack {
                         // Render cards. ZStack puts the last item on top.
