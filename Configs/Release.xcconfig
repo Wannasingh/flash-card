@@ -1,0 +1,9 @@
+// Build Settings for Release
+// Use real production URL here
+BACKEND_URL = https:\/\/api.preamflashcard.com
+
+// Google Sign-In (Default values, overridden by Secrets.xcconfig below)
+GOOGLE_CLIENT_ID = YOUR_PROD_GOOGLE_CLIENT_ID
+GOOGLE_REVERSE_CLIENT_ID = com.googleusercontent.apps.YOUR_PROD_CLIENT_ID
+
+#include "Secrets.xcconfig"

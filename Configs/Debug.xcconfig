@@ -1,0 +1,8 @@
+// Build Settings
+BACKEND_URL = http:\/\/localhost:8081
+
+// Google Sign-In (Default values, overridden by Secrets.xcconfig below)
+GOOGLE_CLIENT_ID = 1234567890-example.apps.googleusercontent.com
+GOOGLE_REVERSE_CLIENT_ID = com.googleusercontent.apps.1234567890-example
+
+#include "Secrets.xcconfig"

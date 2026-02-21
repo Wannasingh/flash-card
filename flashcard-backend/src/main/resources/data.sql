@@ -1,0 +1,3 @@
+INSERT INTO flashcard.roles (name) VALUES ('ROLE_USER') ON CONFLICT (name) DO NOTHING;
+INSERT INTO flashcard.roles (name) VALUES ('ROLE_MODERATOR') ON CONFLICT (name) DO NOTHING;
+INSERT INTO flashcard.roles (name) VALUES ('ROLE_ADMIN') ON CONFLICT (name) DO NOTHING;

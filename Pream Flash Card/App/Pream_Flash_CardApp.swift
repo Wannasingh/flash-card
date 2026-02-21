@@ -11,11 +11,13 @@ import CoreData
 @main
 struct Pream_Flash_CardApp: App {
     let persistenceController = PersistenceController.shared
+    @StateObject private var sessionStore = SessionStore.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environmentObject(sessionStore)
         }
     }
 }
