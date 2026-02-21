@@ -50,6 +50,15 @@ public class User {
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
+    @Column(name = "coins", nullable = false)
+    private Integer coins = 0;
+
+    @Column(name = "streak_days", nullable = false)
+    private Integer streakDays = 0;
+
+    @Column(name = "last_study_date")
+    private java.time.LocalDate lastStudyDate;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
