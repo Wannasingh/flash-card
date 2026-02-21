@@ -79,10 +79,8 @@ struct DeckLibraryView: View {
                                 .buttonStyle(PlainButtonStyle())
                             }
                             
-                            // "Create New" Button Placeholder
-                            Button(action: {
-                                print("Create new deck tapped")
-                            }) {
+                            // "Create New" Button
+                            NavigationLink(destination: CreateDeckView()) {
                                 VStack {
                                     Image(systemName: "plus.app.fill")
                                         .font(.system(size: 40))
@@ -102,6 +100,7 @@ struct DeckLibraryView: View {
                                         .foregroundColor(Theme.neonPink.opacity(0.5))
                                 )
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
                         .padding(.horizontal)
                     }

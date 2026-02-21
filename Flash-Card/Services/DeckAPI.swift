@@ -85,9 +85,43 @@ class DeckAPI {
             throw NSLocalizedString("Invalid network response", comment: "") as! Error
         }
         
-        // 200 OM, 400 Insufficient Coins
+        // 200 OK, 400 Insufficient Coins
         if httpResponse.statusCode != 200 {
              throw NSLocalizedString("Failed to acquire deck (Error \(httpResponse.statusCode))", comment: "") as! Error
+        }
+    }
+    
+    // Create a new Deck
+    func createDeck(token: String, title: String, description: String, customColorHex: String, priceCoins: Int, isPublic: Bool) async throws -> DeckDTO {
+        guard let url = URL(string: baseURL) else {
+            throw NSLocalizedString("Invalid URL", comment: "") as! Error
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let payload: [String: Any] = [
+            "title": title,
+            "description": description,
+            "customColorHex": customColorHex,
+            "priceCoins": priceCoins,
+            "isPublic": isPublic
+        ]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+        }
+        
+        if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+            return try JSONDecoder().decode(DeckDTO.self, from: data)
+        } else {
+             throw NSLocalizedString("Failed to create deck (Error \(httpResponse.statusCode))", comment: "") as! Error
         }
     }
 }
