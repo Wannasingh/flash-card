@@ -24,16 +24,12 @@ struct HomeView: View {
 
     var body: some View {
         TabView {
-            Text("Home")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Theme.cyberDark.ignoresSafeArea())
+            DeckLibraryView()
                 .tabItem {
-                    Label("Home", systemImage: "house.fill")
+                    Label("Library", systemImage: "square.grid.2x2.fill")
                 }
 
-            Text("Marketplace")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Theme.cyberDark.ignoresSafeArea())
+            MarketplaceView()
                 .tabItem {
                     Label("Market", systemImage: "cart.fill")
                 }
