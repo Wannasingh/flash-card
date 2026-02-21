@@ -16,6 +16,7 @@ import java.security.Key;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.lang.NonNull;
 import org.springframework.web.util.WebUtils;
 
 @Component
@@ -58,7 +59,7 @@ public class JwtUtils {
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
-    public String getJwtFromCookies(HttpServletRequest request) {
+    public String getJwtFromCookies(@NonNull HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, "flashcard-jwt");
         if (cookie != null) {
             return cookie.getValue();
@@ -67,7 +68,7 @@ public class JwtUtils {
         }
     }
 
-    public ResponseCookie generateJwtCookie(String jwt) {
+    public ResponseCookie generateJwtCookie(@NonNull String jwt) {
         return ResponseCookie.from("flashcard-jwt", jwt)
                 .path("/api")
                 .maxAge(jwtExpirationMs / 1000)

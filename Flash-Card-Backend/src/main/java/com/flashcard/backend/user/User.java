@@ -59,6 +59,18 @@ public class User {
     @Column(name = "last_study_date")
     private java.time.LocalDate lastStudyDate;
 
+    @Column(name = "total_xp", nullable = false)
+    private Long totalXP = 0L;
+
+    @Column(name = "weekly_xp", nullable = false)
+    private Long weeklyXP = 0L;
+
+    @Column(name = "active_aura_code")
+    private String activeAuraCode;
+
+    @Column(name = "active_skin_code")
+    private String activeSkinCode;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),

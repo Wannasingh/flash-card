@@ -10,4 +10,6 @@ public class StudyStatsResponse {
     private Integer streakDays;
     private Long totalCardsStudied;
     private Long cardsDueToday;
+    private Long totalXP;
+    private Long weeklyXP;
 }

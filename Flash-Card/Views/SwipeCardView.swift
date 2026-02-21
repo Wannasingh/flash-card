@@ -31,17 +31,17 @@ struct SwipeCardView: View {
     let card: CardModel
     var onSwipe: (Int) -> Void // 5 = Right (Remembered), 2 = Left (Forgot)
     
+    @EnvironmentObject var sessionStore: SessionStore
     @State private var offset: CGSize = .zero
     @State private var isShowingBack = false
     @State private var player: AVPlayer?
     
     var body: some View {
         ZStack {
-            // Card Background - Liquid Glass (Ultra Thin Material)
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(RoundedRectangle(cornerRadius: 30).stroke(Color.white.opacity(0.3), lineWidth: 1))
-                .shadow(color: Theme.neonPink.opacity(0.15), radius: 20, x: 0, y: 15)
+            // Dynamic Card Skin Background
+            Color.clear
+                .cardSkin(sessionStore.userProfile?.activeSkinCode)
+                .frame(width: 320, height: 480)
             
             // Text Content
             VStack {

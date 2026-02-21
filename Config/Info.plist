@@ -72,5 +72,9 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Allow access to the microphone for hands-free study mode.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Allow speech recognition to verify your answers in hands-free mode.</string>
 </dict>
 </plist>

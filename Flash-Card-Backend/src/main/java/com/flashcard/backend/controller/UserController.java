@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,9 +34,34 @@ public class UserController {
     @Autowired
     SupabaseStorageService storageService;
 
+    @Autowired
+    com.flashcard.backend.service.BadgeService badgeService;
+
+    @GetMapping("/profile/{id}")
+    @Operation(summary = "Get public profile by ID")
+    public ResponseEntity<com.flashcard.backend.payload.response.PublicProfileResponse> getPublicProfile(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        com.flashcard.backend.payload.response.PublicProfileResponse response = com.flashcard.backend.payload.response.PublicProfileResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .displayName(user.getDisplayName())
+                .imageUrl(user.getImageUrl())
+                .totalXP(user.getTotalXP())
+                .weeklyXP(user.getWeeklyXP())
+                .streakDays(user.getStreakDays())
+                .badges(badgeService.getUserBadges(user))
+                .activeAuraCode(user.getActiveAuraCode())
+                .activeSkinCode(user.getActiveSkinCode())
+                .build();
+        
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/me")
     public JwtResponse getUserProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                      HttpServletRequest request) {
+                                      @NonNull HttpServletRequest request) {
         if (userDetails == null) {
             throw new RuntimeException("User not authenticated");
         }
@@ -190,7 +216,7 @@ public class UserController {
         return createJwtResponse(user, roles, null);
     }
 
-    private JwtResponse createJwtResponse(User user, List<String> roles, HttpServletRequest request) {
+    private JwtResponse createJwtResponse(@NonNull User user, @NonNull List<String> roles, HttpServletRequest request) {
         String imageUrl = user.getImageUrl();
 
         if (imageUrl != null && !imageUrl.isEmpty() && !imageUrl.startsWith("http")) {
@@ -215,7 +241,12 @@ public class UserController {
                 user.getEmail(),
                 user.getDisplayName(),
                 imageUrl,
-                roles
+                roles,
+                user.getTotalXP(),
+                user.getWeeklyXP(),
+                badgeService.getUserBadges(user),
+                user.getActiveAuraCode(),
+                user.getActiveSkinCode()
         );
     }
 

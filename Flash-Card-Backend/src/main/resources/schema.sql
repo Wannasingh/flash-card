@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS flashcard.user_identities (
 ALTER TABLE IF EXISTS flashcard.users ADD COLUMN IF NOT EXISTS coins INT DEFAULT 0;
 ALTER TABLE IF EXISTS flashcard.users ADD COLUMN IF NOT EXISTS streak_days INT DEFAULT 0;
 ALTER TABLE IF EXISTS flashcard.users ADD COLUMN IF NOT EXISTS last_study_date DATE;
+ALTER TABLE IF EXISTS flashcard.users ADD COLUMN IF NOT EXISTS total_xp BIGINT DEFAULT 0;
+ALTER TABLE IF EXISTS flashcard.users ADD COLUMN IF NOT EXISTS weekly_xp BIGINT DEFAULT 0;
 
 -- 2. Decks (ชุดคำศัพท์ สนับสนุน Marketplace)
 CREATE TABLE IF NOT EXISTS flashcard.decks (
@@ -119,3 +121,45 @@ CREATE TABLE IF NOT EXISTS flashcard.study_rooms (
     CONSTRAINT fk_study_rooms_host FOREIGN KEY (host_id) REFERENCES flashcard.users (id) ON DELETE CASCADE,
     CONSTRAINT fk_study_rooms_deck FOREIGN KEY (deck_id) REFERENCES flashcard.decks (id) ON DELETE CASCADE
 );
+
+-- 7. Achievements (Badge System)
+CREATE TABLE IF NOT EXISTS flashcard.badges (
+    id BIGSERIAL PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    icon_url TEXT,
+    category VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS flashcard.user_badges (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    badge_id BIGINT NOT NULL,
+    awarded_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT fk_user_badges_user FOREIGN KEY (user_id) REFERENCES flashcard.users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_badges_badge FOREIGN KEY (badge_id) REFERENCES flashcard.badges (id) ON DELETE CASCADE
+);
+
+-- 8. Store & Customization
+CREATE TABLE IF NOT EXISTS flashcard.store_items (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(20) NOT NULL, -- 'AURA', 'SKIN'
+    price INTEGER NOT NULL DEFAULT 0,
+    visual_config TEXT -- JSON configuration for the effect
+);
+
+CREATE TABLE IF NOT EXISTS flashcard.user_inventory (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    item_id INTEGER NOT NULL,
+    acquired_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT fk_user_inventory_user FOREIGN KEY (user_id) REFERENCES flashcard.users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_user_inventory_item FOREIGN KEY (item_id) REFERENCES flashcard.store_items (id) ON DELETE CASCADE,
+    UNIQUE(user_id, item_id)
+);
+
+ALTER TABLE flashcard.users ADD COLUMN IF NOT EXISTS active_aura_code VARCHAR(50);
+ALTER TABLE flashcard.users ADD COLUMN IF NOT EXISTS active_skin_code VARCHAR(50);

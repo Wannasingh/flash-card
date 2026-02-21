@@ -6,9 +6,11 @@ import com.flashcard.backend.entity.UserDeckId;
 import com.flashcard.backend.exception.ResourceNotFoundException;
 import com.flashcard.backend.payload.request.DeckRequest;
 import com.flashcard.backend.payload.response.DeckResponse;
+import com.flashcard.backend.repository.CardRepository;
 import com.flashcard.backend.repository.DeckRepository;
 import com.flashcard.backend.repository.UserDeckRepository;
 import com.flashcard.backend.repository.UserRepository;
+import com.flashcard.backend.entity.Card;
 import com.flashcard.backend.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,9 @@ public class DeckService {
 
     @Autowired
     private DeckRepository deckRepository;
+
+    @Autowired
+    private CardRepository cardRepository;
 
     @Autowired
     private UserDeckRepository userDeckRepository;
@@ -43,6 +48,18 @@ public class DeckService {
         deck.setPrice(request.getPrice());
 
         Deck savedDeck = deckRepository.save(deck);
+
+        // Save nested cards if present (e.g. from Brain Dump)
+        if (request.getCards() != null && !request.getCards().isEmpty()) {
+            request.getCards().forEach(cardReq -> {
+                Card card = new Card();
+                card.setDeck(savedDeck);
+                card.setFrontText(cardReq.getFrontText());
+                card.setBackText(cardReq.getBackText());
+                card.setAiMnemonic(cardReq.getAiMnemonic());
+                cardRepository.save(card);
+            });
+        }
 
         // Add to user's library automatically
         UserDeck userDeck = new UserDeck(userId, savedDeck.getId(), user, savedDeck, false, Instant.now());

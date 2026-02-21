@@ -6,6 +6,7 @@ import com.flashcard.backend.payload.response.MessageResponse;
 import com.flashcard.backend.payload.response.StudyStatsResponse;
 import com.flashcard.backend.service.StudyService;
 import com.flashcard.backend.service.UserDetailsImpl;
+import com.flashcard.backend.service.XPService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -25,6 +26,9 @@ public class StudyController {
     @Autowired
     private StudyService studyService;
 
+    @Autowired
+    private XPService xpService;
+
     @Operation(summary = "Get cards that are due for review today")
     @GetMapping("/due-cards")
     public ResponseEntity<List<CardResponse>> getDueCards(@AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -38,6 +42,7 @@ public class StudyController {
                                                       @Valid @RequestBody ReviewRequest request,
                                                       @AuthenticationPrincipal UserDetailsImpl userDetails) {
         studyService.reviewCard(userDetails.getId(), cardId, request.getQuality());
+        xpService.grantXPForReview(userDetails.getId());
         return ResponseEntity.ok(new MessageResponse("Review processed. Gamification updated."));
     }
 

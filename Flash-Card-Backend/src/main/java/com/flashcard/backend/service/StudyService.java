@@ -97,6 +97,8 @@ public class StudyService {
                 .streakDays(user.getStreakDays())
                 .totalCardsStudied(totalStudied)
                 .cardsDueToday(dueToday)
+                .totalXP(user.getTotalXP())
+                .weeklyXP(user.getWeeklyXP())
                 .build();
     }
 

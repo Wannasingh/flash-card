@@ -9,6 +9,13 @@ struct JwtResponse: Codable {
     let displayName: String?
     let imageUrl: String?
     let roles: [String]
+    let totalXP: Int64?
+    let weeklyXP: Int64?
+    let badges: [BadgeModel]?
+    let activeAuraCode: String?
+    let activeSkinCode: String?
+    let coins: Int?
+    let streakDays: Int?
 }
 
 struct MessageResponse: Codable {

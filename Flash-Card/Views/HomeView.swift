@@ -45,6 +45,11 @@ struct HomeView: View {
                         Label("Study", systemImage: "flame.fill")
                     }
 
+                LeaderboardView()
+                    .tabItem {
+                        Label("Rankings", systemImage: "trophy.fill")
+                    }
+
                 ProfileView()
                     .tabItem {
                         Label("Profile", systemImage: "person.crop.circle.fill")

@@ -17,16 +17,31 @@ struct DeckDTO: Codable, Identifiable {
     let owned: Bool
 }
 
+struct BrainDumpCardDto: Codable, Identifiable {
+    var id: UUID = UUID()
+    let frontText: String
+    let backText: String
+    let aiMnemonic: String
+    
+    enum CodingKeys: String, CodingKey {
+        case frontText, backText, aiMnemonic
+    }
+}
+
+struct BrainDumpResponse: Codable {
+    let cards: [BrainDumpCardDto]
+}
+
 class DeckAPI {
     static let shared = DeckAPI()
     
-    private let baseURL = "http://localhost:8080/api/decks"
+    private var baseURL: URL {
+        AppConfig.backendBaseURL.appendingPathComponent("/api/decks")
+    }
     
     // Fetch user's personal library
     func fetchMyLibrary(token: String) async throws -> [DeckDTO] {
-        guard let url = URL(string: "\(baseURL)/library") else {
-            throw NSLocalizedString("Invalid URL", comment: "") as! Error
-        }
+        let url = baseURL.appendingPathComponent("/library")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -48,9 +63,7 @@ class DeckAPI {
     
     // Fetch public marketplace decks
     func fetchMarketplace(token: String) async throws -> [DeckDTO] {
-        guard let url = URL(string: "\(baseURL)/marketplace") else {
-            throw NSLocalizedString("Invalid URL", comment: "") as! Error
-        }
+        let url = baseURL.appendingPathComponent("/marketplace")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -71,9 +84,7 @@ class DeckAPI {
     
     // Purchase or Acquire a Deck
     func acquireDeck(token: String, deckId: Int) async throws {
-        guard let url = URL(string: "\(baseURL)/\(deckId)/acquire") else {
-            throw NSLocalizedString("Invalid URL", comment: "") as! Error
-        }
+        let url = baseURL.appendingPathComponent("/\(deckId)/acquire")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -92,10 +103,8 @@ class DeckAPI {
     }
     
     // Create a new Deck
-    func createDeck(token: String, title: String, description: String, customColorHex: String, priceCoins: Int, isPublic: Bool) async throws -> DeckDTO {
-        guard let url = URL(string: baseURL) else {
-            throw NSLocalizedString("Invalid URL", comment: "") as! Error
-        }
+    func createDeck(token: String, title: String, description: String, customColorHex: String, priceCoins: Int, isPublic: Bool, cards: [BrainDumpCardDto]? = nil) async throws -> DeckDTO {
+        let url = baseURL
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -110,7 +119,19 @@ class DeckAPI {
             "isPublic": isPublic
         ]
         
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        var finalPayload = payload
+        if let cards = cards {
+            let cardsPayload = cards.map { card in
+                return [
+                    "frontText": card.frontText,
+                    "backText": card.backText,
+                    "aiMnemonic": card.aiMnemonic
+                ]
+            }
+            finalPayload["cards"] = cardsPayload
+        }
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: finalPayload)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
@@ -127,9 +148,7 @@ class DeckAPI {
     
     // Add a Card to an existing Deck
     func addCardToDeck(token: String, deckId: Int, frontContent: String, backContent: String, frontMediaUrl: String?, backMediaUrl: String?, aiMnemonic: String?) async throws {
-        guard let url = URL(string: "\(baseURL)/\(deckId)/cards") else {
-            throw NSLocalizedString("Invalid URL", comment: "") as! Error
-        }
+        let url = baseURL.appendingPathComponent("/\(deckId)/cards")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -161,9 +180,7 @@ class DeckAPI {
     
     // Generate AI Mnemonic
     func generateAiMnemonic(token: String, frontText: String) async throws -> String {
-        guard let url = URL(string: "http://localhost:8080/api/cards/ai-mnemonic") else {
-            throw NSLocalizedString("Invalid URL", comment: "") as! Error
-        }
+        let url = AppConfig.backendBaseURL.appendingPathComponent("/api/cards/ai-mnemonic")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -189,4 +206,31 @@ class DeckAPI {
              throw NSLocalizedString("Failed to generate AI mnemonic (Error \(httpResponse.statusCode))", comment: "") as! Error
         }
     }
+    
+    // AI Brain Dump: Generate a list of cards from raw text
+    func brainDump(token: String, text: String) async throws -> [BrainDumpCardDto] {
+        let url = baseURL.appendingPathComponent("/braindump")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let payload: [String: Any] = ["text": text]
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+        }
+        
+        if httpResponse.statusCode == 200 {
+            let res = try JSONDecoder().decode(BrainDumpResponse.self, from: data)
+            return res.cards
+        } else {
+             throw NSLocalizedString("Failed to generate cards (Error \(httpResponse.statusCode))", comment: "") as! Error
+        }
+    }
 }
+

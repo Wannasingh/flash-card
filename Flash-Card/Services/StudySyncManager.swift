@@ -37,7 +37,11 @@ class StudySyncManager {
             do {
                 try await api.submitReview(token: token, cardId: review.cardId, quality: review.quality)
                 successfullySyncedCardIds.insert(review.cardId)
+                
+                // Update Streak for Widget (Simple logic: if a review is synced, record today as active)
+                updateStreak()
             } catch {
+
                 print("Failed to sync queued review for card \(review.cardId): \(error)")
                 // Stop trying the rest if the network is still completely down to save battery/bandwidth
                 break
@@ -67,4 +71,36 @@ class StudySyncManager {
             UserDefaults.standard.set(data, forKey: queueKey)
         }
     }
+    
+    private func updateStreak() {
+        let lastDateKey = "lastStudyDate"
+        let currentStreakKey = "streakCount"
+        
+        let now = Date()
+        let calendar = Calendar.current
+        
+        // Use standard UserDefaults for simple persistence, but sync to WidgetDataStore
+        let lastDate = UserDefaults.standard.object(forKey: lastDateKey) as? Date
+        var currentStreak = WidgetDataStore.shared.getStreakCount()
+        
+        if let last = lastDate {
+            if calendar.isDateInYesterday(last) {
+                // Studied yesterday, increment streak
+                currentStreak += 1
+            } else if calendar.isDateInToday(last) {
+                // Already studied today, skip
+                return
+            } else {
+                // Missed days, reset
+                currentStreak = 1
+            }
+        } else {
+            // First time
+            currentStreak = 1
+        }
+        
+        UserDefaults.standard.set(now, forKey: lastDateKey)
+        WidgetDataStore.shared.saveStreakCount(currentStreak)
+    }
 }
+

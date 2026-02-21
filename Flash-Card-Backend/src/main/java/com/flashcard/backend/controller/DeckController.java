@@ -1,8 +1,11 @@
 package com.flashcard.backend.controller;
 
+import com.flashcard.backend.payload.request.BrainDumpRequest;
 import com.flashcard.backend.payload.request.DeckRequest;
+import com.flashcard.backend.payload.response.BrainDumpResponse;
 import com.flashcard.backend.payload.response.DeckResponse;
 import com.flashcard.backend.payload.response.MessageResponse;
+import com.flashcard.backend.service.AIBrainDumpService;
 import com.flashcard.backend.service.DeckService;
 import com.flashcard.backend.service.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,11 +27,21 @@ public class DeckController {
     @Autowired
     private DeckService deckService;
 
+    @Autowired
+    private AIBrainDumpService aiBrainDumpService;
+
     @Operation(summary = "Create a new flashcard deck")
     @PostMapping
     public ResponseEntity<DeckResponse> createDeck(@Valid @RequestBody DeckRequest request,
                                                   @AuthenticationPrincipal UserDetailsImpl userDetails) {
         DeckResponse response = deckService.createDeck(userDetails.getId(), request);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Generate cards from raw text using AI (Brain Dump)")
+    @PostMapping("/braindump")
+    public ResponseEntity<BrainDumpResponse> brainDump(@Valid @RequestBody BrainDumpRequest request) {
+        BrainDumpResponse response = aiBrainDumpService.generateCardsFromText(request);
         return ResponseEntity.ok(response);
     }
 

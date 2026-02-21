@@ -11,6 +11,8 @@ struct CreateDeckView: View {
     
     @State private var isSubmitting = false
     @State private var errorMessage: String?
+    @State private var showBrainDump = false
+    @State private var generatedCards: [BrainDumpCardDto] = []
     
     // Cyberpunk Color Palette for Selection
     let colorOptions = [
@@ -24,7 +26,7 @@ struct CreateDeckView: View {
     
     var body: some View {
         ZStack {
-            Theme.cyberDark.ignoresSafeArea()
+            Color.clear.liquidGlassBackground()
             
             VStack(spacing: 0) {
                 // Custom Header
@@ -89,6 +91,33 @@ struct CreateDeckView: View {
                             // Hack to hide deafult TextEditor background color in SwiftUI
                                 .scrollContentBackground(.hidden)
                         }
+                        
+                        // Brain Dump (AI) Entry Point
+                        Button(action: {
+                            showBrainDump = true
+                        }) {
+                            HStack {
+                                Image(systemName: "sparkles")
+                                    .foregroundColor(Theme.cyberYellow)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("AI BRAIN DUMP")
+                                        .cyberpunkFont(size: 16)
+                                        .foregroundColor(Theme.textPrimary)
+                                    Text("Paste your notes and let AI generate cards instantly.")
+                                        .font(.caption2)
+                                        .foregroundColor(Theme.textSecondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(Theme.textSecondary)
+                            }
+                            .padding()
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.cyberYellow.opacity(0.3), lineWidth: 1))
+                        }
+                        .padding(.top, -8)
                         
                         // Color Picker
                         VStack(alignment: .leading, spacing: 8) {
@@ -206,6 +235,9 @@ struct CreateDeckView: View {
             }
         }
         .navigationBarHidden(true)
+        .sheet(isPresented: $showBrainDump) {
+            BrainDumpView(generatedCards: $generatedCards)
+        }
     }
     
     private func createDeck() async {
@@ -225,7 +257,8 @@ struct CreateDeckView: View {
                 description: description,
                 customColorHex: selectedColorHex,
                 priceCoins: finalPrice,
-                isPublic: isPublic
+                isPublic: isPublic,
+                cards: generatedCards.isEmpty ? nil : generatedCards
             )
             
             isSubmitting = false

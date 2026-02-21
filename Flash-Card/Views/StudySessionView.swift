@@ -28,6 +28,20 @@ struct StudySessionView: View {
                             .font(.caption)
                             .foregroundColor(Theme.textSecondary)
                     }
+                    
+                    // Magic Mic Toggle
+                    Button(action: {
+                        viewModel.toggleVoiceMode()
+                    }) {
+                        Image(systemName: viewModel.isVoiceModeActive ? "mic.fill" : "mic.slash")
+                            .font(.system(size: 24))
+                            .foregroundColor(viewModel.isVoiceModeActive ? Theme.neonPink : Theme.textSecondary)
+                            .padding(10)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(viewModel.isVoiceModeActive ? Theme.neonPink : Color.clear, lineWidth: 2))
+                    }
+                    .padding(.leading, 12)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
@@ -47,6 +61,40 @@ struct StudySessionView: View {
                         ForEach(viewModel.dueCards) { card in
                             SwipeCardView(card: card) { quality in
                                 handleSwipe(card: card, quality: quality)
+                            }
+                        }
+                        
+                        // Voice Feedback Overlay
+                        if let evaluation = viewModel.lastEvaluation {
+                            Text(evaluation)
+                                .cyberpunkFont(size: 40)
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(Theme.neonPink.opacity(0.8))
+                                .cornerRadius(20)
+                                .shadow(radius: 10)
+                                .transition(.scale.combined(with: .opacity))
+                                .zIndex(100)
+                        }
+                        
+                        if viewModel.isVoiceModeActive {
+                            VStack {
+                                Spacer()
+                                HStack {
+                                    if viewModel.voiceTutor.isSpeaking {
+                                        Label("Tutor is Speaking...", systemImage: "speaker.wave.2.fill")
+                                            .foregroundColor(Theme.cyanAccent)
+                                    } else if viewModel.voiceTutor.isListening {
+                                        Label("Listening for Answer...", systemImage: "waveform.circle.fill")
+                                            .foregroundColor(Theme.neonPink)
+                                            .symbolEffect(.variableColor.iterative, options: .repeating)
+                                    }
+                                }
+                                .cyberpunkFont(size: 14)
+                                .padding()
+                                .background(.ultraThinMaterial.opacity(0.8))
+                                .cornerRadius(20)
+                                .padding(.bottom, 20)
                             }
                         }
                     }

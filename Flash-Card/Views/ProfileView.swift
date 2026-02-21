@@ -25,12 +25,14 @@ struct ProfileView: View {
                                 }
                                 .frame(width: 80, height: 80)
                                 .clipShape(Circle())
+                                .aura(sessionStore.userProfile?.activeAuraCode)
                                 .overlay(Circle().stroke(Theme.cyanAccent, lineWidth: 2))
                             } else {
                                 Image(systemName: "person.crop.circle.fill")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 80, height: 80)
+                                    .aura(sessionStore.userProfile?.activeAuraCode)
                                     .foregroundColor(Theme.neonPink)
                                     .overlay(Circle().stroke(Theme.cyanAccent, lineWidth: 2))
                             }
@@ -52,12 +54,37 @@ struct ProfileView: View {
                         .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.3), lineWidth: 1))
                         .padding(.horizontal)
                         
-                        // Gamification Dashboard (Placeholders for Step C Data)
+                        // Gamification Dashboard
                         HStack(spacing: 16) {
-                            StatBox(icon: "flame.fill", title: "Streak", value: "12 Days", color: Theme.cyberYellow)
-                            StatBox(icon: "bitcoinsign.circle.fill", title: "Coins", value: "350 🪙", color: Theme.electricBlue)
+                            StatBox(icon: "flame.fill", title: "Streak", value: "\(sessionStore.userProfile?.streakDays ?? 0) Days", color: Theme.cyberYellow)
+                            StatBox(icon: "bitcoinsign.circle.fill", title: "Coins", value: "\(sessionStore.userProfile?.coins ?? 0) 🪙", color: Theme.electricBlue)
                         }
                         .padding(.horizontal)
+                        
+                        HStack(spacing: 16) {
+                            StatBox(icon: "bolt.fill", title: "Total XP", value: "\(sessionStore.userProfile?.totalXP ?? 0)", color: Theme.cyanAccent)
+                            StatBox(icon: "target", title: "Weekly XP", value: "\(sessionStore.userProfile?.weeklyXP ?? 0)", color: Theme.neonPink)
+                        }
+                        .padding(.horizontal)
+                        
+                        // Badge Case
+                        if let badges = sessionStore.userProfile?.badges, !badges.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("MY BADGES")
+                                    .font(.caption.bold())
+                                    .foregroundColor(Theme.cyanAccent)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 15) {
+                                        ForEach(badges) { badge in
+                                            BadgeView(badge: badge, size: 50)
+                                        }
+                                    }
+                                    .padding(.vertical, 5)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
                         
                         // Top Up Coins Section
                         VStack(alignment: .leading, spacing: 12) {
@@ -111,6 +138,10 @@ struct ProfileView: View {
                         
                         // Action Buttons
                         VStack(spacing: 16) {
+                            NavigationLink(destination: StoreView()) {
+                                ActionRow(icon: "sparkles", title: "Aura Store", color: .yellow)
+                            }
+                            
                             NavigationLink(destination: EditProfileView()) {
                                 ActionRow(icon: "pencil.line", title: "Edit Profile", color: Theme.cyanAccent)
                             }

@@ -13,4 +13,5 @@ public class DeckRequest {
     private List<String> tags;
     private Boolean isPublic = false;
     private Integer price = 0;
+    private List<CardRequest> cards;
 }
