@@ -22,30 +22,36 @@ struct HomeView: View {
         }
     }
 
+    @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
+
     var body: some View {
-        TabView {
-            DeckLibraryView()
-                .tabItem {
-                    Label("Library", systemImage: "square.grid.2x2.fill")
-                }
+        if !hasSeenOnboarding {
+            OnboardingView()
+        } else {
+            TabView {
+                DeckLibraryView()
+                    .tabItem {
+                        Label("Library", systemImage: "square.grid.2x2.fill")
+                    }
 
-            MarketplaceView()
-                .tabItem {
-                    Label("Market", systemImage: "cart.fill")
-                }
+                MarketplaceView()
+                    .tabItem {
+                        Label("Market", systemImage: "cart.fill")
+                    }
 
-            StudySessionView()
-                .tabItem {
-                    // Eye-catching center button for studying
-                    Label("Study", systemImage: "flame.fill")
-                }
+                StudySessionView()
+                    .tabItem {
+                        // Eye-catching center button for studying
+                        Label("Study", systemImage: "flame.fill")
+                    }
 
-            ProfileView()
-                .tabItem {
-                    Label("Profile", systemImage: "person.crop.circle.fill")
-                }
+                ProfileView()
+                    .tabItem {
+                        Label("Profile", systemImage: "person.crop.circle.fill")
+                    }
+            }
+            .accentColor(Theme.electricBlue)
         }
-        .accentColor(Theme.electricBlue)
     }
 }
 

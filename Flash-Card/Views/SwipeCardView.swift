@@ -33,6 +33,7 @@ struct SwipeCardView: View {
     
     @State private var offset: CGSize = .zero
     @State private var isShowingBack = false
+    @State private var player: AVPlayer?
     
     var body: some View {
         ZStack {
@@ -47,11 +48,22 @@ struct SwipeCardView: View {
                 Spacer()
                 
                 if isShowingBack, let videoStr = card.videoUrl, let vUrl = URL(string: videoStr) {
-                    VideoPlayer(player: AVPlayer(url: vUrl))
+                    VideoPlayer(player: player)
                         .frame(height: 180)
                         .cornerRadius(16)
                         .padding(.horizontal, 24)
+                        .onAppear {
+                            if player == nil {
+                                player = AVPlayer(url: vUrl)
+                            }
+                            player?.play()
+                        }
+                        .onDisappear {
+                            player?.pause()
+                            player = nil // Free memory when swiped away
+                        }
                 } else if isShowingBack, let arStr = card.arModelUrl, let arUrl = URL(string: arStr) {
+                    // AR Models are typically lighter when discarded, but we can do the same pattern if needed.
                     SceneView(scene: try? SCNScene(url: arUrl), options: [.autoenablesDefaultLighting, .allowsCameraControl])
                         .frame(height: 180)
                         .cornerRadius(16)

@@ -1,7 +1,10 @@
 import SwiftUI
+import StoreKit
 
 struct ProfileView: View {
     @EnvironmentObject var sessionStore: SessionStore
+    @StateObject private var storeManager = StoreKitManager()
+    @State private var showPurchaseLoading = false
 
     var body: some View {
         NavigationView {
@@ -53,6 +56,55 @@ struct ProfileView: View {
                         HStack(spacing: 16) {
                             StatBox(icon: "flame.fill", title: "Streak", value: "12 Days", color: Theme.cyberYellow)
                             StatBox(icon: "bitcoinsign.circle.fill", title: "Coins", value: "350 🪙", color: Theme.electricBlue)
+                        }
+                        .padding(.horizontal)
+                        
+                        // Top Up Coins Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("STORE")
+                                .font(.caption.bold())
+                                .foregroundColor(Theme.cyberYellow)
+                            
+                            ForEach(storeManager.coinProducts) { product in
+                                Button(action: {
+                                    Task {
+                                        showPurchaseLoading = true
+                                        _ = try? await storeManager.purchase(product)
+                                        showPurchaseLoading = false
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "bitcoinsign.circle.fill")
+                                            .foregroundColor(Theme.cyberYellow)
+                                            .font(.title2)
+                                        
+                                        VStack(alignment: .leading) {
+                                            Text(product.displayName)
+                                                .font(.headline)
+                                                .foregroundColor(Theme.textPrimary)
+                                            Text(product.description)
+                                                .font(.caption)
+                                                .foregroundColor(Theme.textSecondary)
+                                        }
+                                        Spacer()
+                                        
+                                        if showPurchaseLoading {
+                                            ProgressView().progressViewStyle(CircularProgressViewStyle())
+                                        } else {
+                                            Text(product.displayPrice)
+                                                .font(.subheadline.bold())
+                                                .padding(.horizontal, 12)
+                                                .padding(.vertical, 6)
+                                                .background(Theme.neonGradient)
+                                                .foregroundColor(.white)
+                                                .cornerRadius(12)
+                                        }
+                                    }
+                                    .padding()
+                                    .background(Theme.cyberCard)
+                                    .cornerRadius(12)
+                                }
+                            }
                         }
                         .padding(.horizontal)
                         
