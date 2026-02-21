@@ -126,7 +126,7 @@ class DeckAPI {
     }
     
     // Add a Card to an existing Deck
-    func addCardToDeck(token: String, deckId: Int, frontContent: String, backContent: String, frontMediaUrl: String?, backMediaUrl: String?) async throws {
+    func addCardToDeck(token: String, deckId: Int, frontContent: String, backContent: String, frontMediaUrl: String?, backMediaUrl: String?, aiMnemonic: String?) async throws {
         guard let url = URL(string: "\(baseURL)/\(deckId)/cards") else {
             throw NSLocalizedString("Invalid URL", comment: "") as! Error
         }
@@ -144,6 +144,7 @@ class DeckAPI {
         
         if let fmUrl = frontMediaUrl { payload["frontMediaUrl"] = fmUrl }
         if let bmUrl = backMediaUrl  { payload["backMediaUrl"] = bmUrl }
+        if let aiMn = aiMnemonic     { payload["aiMnemonic"] = aiMn }
         
         request.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
@@ -155,6 +156,37 @@ class DeckAPI {
         
         if httpResponse.statusCode != 200 && httpResponse.statusCode != 201 {
              throw NSLocalizedString("Failed to add card to deck (Error \(httpResponse.statusCode))", comment: "") as! Error
+        }
+    }
+    
+    // Generate AI Mnemonic
+    func generateAiMnemonic(token: String, frontText: String) async throws -> String {
+        guard let url = URL(string: "http://localhost:8080/api/cards/ai-mnemonic") else {
+            throw NSLocalizedString("Invalid URL", comment: "") as! Error
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Pass the string directly or wrap it? The Spring backend reads @RequestBody String
+        request.httpBody = frontText.data(using: .utf8)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NSLocalizedString("Invalid network response", comment: "") as! Error
+        }
+        
+        if httpResponse.statusCode == 200 {
+            struct MessageResponse: Codable {
+                let message: String
+            }
+            let msgObj = try JSONDecoder().decode(MessageResponse.self, from: data)
+            return msgObj.message
+        } else {
+             throw NSLocalizedString("Failed to generate AI mnemonic (Error \(httpResponse.statusCode))", comment: "") as! Error
         }
     }
 }

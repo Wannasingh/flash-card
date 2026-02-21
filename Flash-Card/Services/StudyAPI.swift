@@ -25,7 +25,17 @@ class StudyAPI {
         
         // Map backend CardResponse to frontend CardModel
         return cards.map {
-            CardModel(id: UUID(), backendId: $0.id, frontText: $0.frontText, backText: $0.backText)
+            CardModel(
+                id: UUID(),
+                backendId: $0.id,
+                frontText: $0.frontText,
+                backText: $0.backText,
+                imageUrl: $0.imageUrl,
+                videoUrl: $0.videoUrl,
+                arModelUrl: $0.arModelUrl,
+                memeUrl: $0.memeUrl,
+                aiMnemonic: $0.aiMnemonic
+            )
         }
     }
     

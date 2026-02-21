@@ -1,4 +1,6 @@
 import SwiftUI
+import AVKit
+import SceneKit
 
 // Model for Phase 4 UI mapping
 struct CardModel: Identifiable {
@@ -6,12 +8,22 @@ struct CardModel: Identifiable {
     let backendId: Int? // Required for API syncing
     let frontText: String
     let backText: String
+    let imageUrl: String?
+    let videoUrl: String?
+    let arModelUrl: String?
+    let memeUrl: String?
+    let aiMnemonic: String?
     
-    init(id: UUID = UUID(), backendId: Int? = nil, frontText: String, backText: String) {
+    init(id: UUID = UUID(), backendId: Int? = nil, frontText: String, backText: String, imageUrl: String? = nil, videoUrl: String? = nil, arModelUrl: String? = nil, memeUrl: String? = nil, aiMnemonic: String? = nil) {
         self.id = id
         self.backendId = backendId
         self.frontText = frontText
         self.backText = backText
+        self.imageUrl = imageUrl
+        self.videoUrl = videoUrl
+        self.arModelUrl = arModelUrl
+        self.memeUrl = memeUrl
+        self.aiMnemonic = aiMnemonic
     }
 }
 
@@ -33,13 +45,35 @@ struct SwipeCardView: View {
             // Text Content
             VStack {
                 Spacer()
+                
+                if isShowingBack, let videoStr = card.videoUrl, let vUrl = URL(string: videoStr) {
+                    VideoPlayer(player: AVPlayer(url: vUrl))
+                        .frame(height: 180)
+                        .cornerRadius(16)
+                        .padding(.horizontal, 24)
+                } else if isShowingBack, let arStr = card.arModelUrl, let arUrl = URL(string: arStr) {
+                    SceneView(scene: try? SCNScene(url: arUrl), options: [.autoenablesDefaultLighting, .allowsCameraControl])
+                        .frame(height: 180)
+                        .cornerRadius(16)
+                        .padding(.horizontal, 24)
+                }
+                
                 Text(isShowingBack ? card.backText : card.frontText)
-                    .cyberpunkFont(size: 32)
+                    .cyberpunkFont(size: isShowingBack && (card.videoUrl != nil || card.arModelUrl != nil) ? 24 : 32)
                     .foregroundColor(Theme.textPrimary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
                     // Added a 3D flip effect feeling when text changes
                     .rotation3DEffect(.degrees(isShowingBack ? 360 : 0), axis: (x: 0, y: 1, z: 0))
+                
+                if isShowingBack, let mnemonic = card.aiMnemonic, !mnemonic.isEmpty {
+                    Text("💡 \(mnemonic)")
+                        .font(.subheadline.italic())
+                        .foregroundColor(Theme.cyberYellow)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                }
                 
                 Spacer()
                 

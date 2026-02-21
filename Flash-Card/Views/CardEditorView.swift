@@ -8,12 +8,14 @@ struct CardEditorView: View {
     @State private var frontText: String = ""
     @State private var backText: String = ""
     
-    // Future Multimedia Fields
+    // Future Multimedia & AI Fields
     @State private var frontImageUrl: String = ""
     @State private var backImageUrl: String = ""
+    @State private var aiMnemonic: String = ""
     
     // UI State
     @State private var isSubmitting = false
+    @State private var isGeneratingMnemonic = false
     @State private var errorMessage: String?
     @State private var successMessage: String?
     
@@ -84,6 +86,50 @@ struct CardEditorView: View {
                         .background(Theme.cyberCard.opacity(0.3))
                         .cornerRadius(16)
                         .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.cyberYellow.opacity(0.1), lineWidth: 1))
+                        
+                        // AI MNEMONIC SHIELD
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("AI MNEMONIC")
+                                    .font(.caption.bold())
+                                    .foregroundColor(Theme.electricBlue)
+                                Spacer()
+                                Button(action: {
+                                    Task { await generateMnemonic() }
+                                }) {
+                                    if isGeneratingMnemonic {
+                                        ProgressView().progressViewStyle(CircularProgressViewStyle())
+                                    } else {
+                                        Image(systemName: "wand.and.stars")
+                                            .foregroundColor(Theme.cyberDark)
+                                            .padding(8)
+                                            .background(Theme.electricBlue)
+                                            .clipShape(Circle())
+                                    }
+                                }
+                                .disabled(frontText.isEmpty || isGeneratingMnemonic)
+                            }
+                            
+                            if !aiMnemonic.isEmpty {
+                                TextEditor(text: $aiMnemonic)
+                                    .frame(height: 80)
+                                    .font(.body)
+                                    .foregroundColor(Theme.textPrimary)
+                                    .padding(8)
+                                    .background(Theme.cyberCard)
+                                    .cornerRadius(12)
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.electricBlue.opacity(0.3), lineWidth: 1))
+                                    .scrollContentBackground(.hidden)
+                            } else {
+                                Text("Enter FRONT text and tap the wand to generate a memory hook!")
+                                    .font(.caption)
+                                    .foregroundColor(Theme.textSecondary)
+                            }
+                        }
+                        .padding()
+                        .background(Theme.cyberCard.opacity(0.3))
+                        .cornerRadius(16)
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.electricBlue.opacity(0.1), lineWidth: 1))
                         
                         
                         // BACK END OF CARD
@@ -192,7 +238,8 @@ struct CardEditorView: View {
                 frontContent: frontText,
                 backContent: backText,
                 frontMediaUrl: frontImageUrl.isEmpty ? nil : frontImageUrl,
-                backMediaUrl: backImageUrl.isEmpty ? nil : backImageUrl
+                backMediaUrl: backImageUrl.isEmpty ? nil : backImageUrl,
+                aiMnemonic: aiMnemonic.isEmpty ? nil : aiMnemonic
             )
             
             successMessage = "Card added successfully!"
@@ -202,6 +249,7 @@ struct CardEditorView: View {
             backText = ""
             frontImageUrl = ""
             backImageUrl = ""
+            aiMnemonic = ""
             
             // Haptic feedback for success
             let generator = UINotificationFeedbackGenerator()
@@ -214,6 +262,29 @@ struct CardEditorView: View {
         }
         
         isSubmitting = false
+    }
+    
+    private func generateMnemonic() async {
+        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
+            errorMessage = "Authentication token missing."
+            return
+        }
+        
+        isGeneratingMnemonic = true
+        errorMessage = nil
+        
+        do {
+            let generated = try await DeckAPI.shared.generateAiMnemonic(token: token, frontText: frontText)
+            aiMnemonic = generated
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+        } catch {
+            errorMessage = error.localizedDescription
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.error)
+        }
+        
+        isGeneratingMnemonic = false
     }
 }
 
