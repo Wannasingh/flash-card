@@ -5,7 +5,7 @@ struct StudySessionView: View {
     
     var body: some View {
         ZStack {
-            Theme.cyberDark.ignoresSafeArea()
+            Color.clear.liquidGlassBackground()
             
             VStack {
                 // Top Action Bar

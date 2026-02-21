@@ -13,7 +13,10 @@ struct EditProfileView: View {
     @State private var errorMessage: String?
     
     var body: some View {
-        Form {
+        ZStack {
+            Color.clear.liquidGlassBackground()
+            
+            Form {
             Section {
                 HStack {
                     Spacer()
@@ -87,6 +90,8 @@ struct EditProfileView: View {
                 .disabled(isLoading || (displayName.isEmpty && selectedImageData == nil))
                 .listRowBackground((displayName.isEmpty && selectedImageData == nil) ? Color.blue.opacity(0.5) : Color.blue)
             }
+        }
+        .scrollContentBackground(.hidden)
         }
         .navigationTitle("Edit Profile")
         .navigationBarTitleDisplayMode(.inline)

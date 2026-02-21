@@ -39,7 +39,8 @@ struct MarketplaceView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Theme.cyberDark.ignoresSafeArea()
+                // Liquid Glass Background
+                Color.clear.liquidGlassBackground()
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {

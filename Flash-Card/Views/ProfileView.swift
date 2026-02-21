@@ -9,7 +9,7 @@ struct ProfileView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Theme.cyberDark.ignoresSafeArea()
+                Color.clear.liquidGlassBackground()
                 
                 ScrollView {
                     VStack(spacing: 24) {
@@ -47,9 +47,9 @@ struct ProfileView: View {
                             Spacer()
                         }
                         .padding()
-                        .background(Theme.cyberCard)
+                        .background(.ultraThinMaterial)
                         .cornerRadius(16)
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.neonPink.opacity(0.5), lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.3), lineWidth: 1))
                         .padding(.horizontal)
                         
                         // Gamification Dashboard (Placeholders for Step C Data)
@@ -101,8 +101,9 @@ struct ProfileView: View {
                                         }
                                     }
                                     .padding()
-                                    .background(Theme.cyberCard)
+                                    .background(.ultraThinMaterial)
                                     .cornerRadius(12)
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.2), lineWidth: 1))
                                 }
                             }
                         }
@@ -153,7 +154,7 @@ struct StatBox: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Theme.cyberCard)
+        .background(.ultraThinMaterial)
         .cornerRadius(16)
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(color.opacity(0.4), lineWidth: 1))
     }
@@ -178,8 +179,9 @@ struct ActionRow: View {
                 .font(.system(size: 14))
         }
         .padding()
-        .background(Theme.cyberCard)
+        .background(.ultraThinMaterial)
         .cornerRadius(12)
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.2), lineWidth: 1))
     }
 }
 
@@ -187,8 +189,8 @@ extension View {
     func navigationBarBackground() -> some View {
         self.onAppear {
             let appearance = UINavigationBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(red: 0.06, green: 0.09, blue: 0.16, alpha: 1.0)
+            appearance.configureWithTransparentBackground() // Make the navigation bar glass
+            appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
             appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
             appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
             

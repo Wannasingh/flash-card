@@ -37,10 +37,10 @@ struct SwipeCardView: View {
     
     var body: some View {
         ZStack {
-            // Card Background
+            // Card Background - Liquid Glass (Ultra Thin Material)
             RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(Theme.cardGradient)
-                .overlay(RoundedRectangle(cornerRadius: 30).stroke(Theme.neonPink.opacity(0.3), lineWidth: 2))
+                .fill(.ultraThinMaterial)
+                .overlay(RoundedRectangle(cornerRadius: 30).stroke(Color.white.opacity(0.3), lineWidth: 1))
                 .shadow(color: Theme.neonPink.opacity(0.15), radius: 20, x: 0, y: 15)
             
             // Text Content
@@ -116,8 +116,8 @@ struct SwipeCardView: View {
                         // Swiped Left - Forgot
                         swipe(direction: 2)
                     } else {
-                        // Spring Snap Back to Center
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                        // Spring Snap Back to Center (Liquid Glass Physics)
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.5, blendDuration: 0.2)) {
                             offset = .zero
                         }
                     }

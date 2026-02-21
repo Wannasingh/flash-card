@@ -53,7 +53,8 @@ struct DeckLibraryView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Theme.cyberDark.ignoresSafeArea()
+                // Liquid Glass Background
+                Color.clear.liquidGlassBackground()
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
@@ -172,10 +173,11 @@ struct DeckCardView: View {
             .padding(.horizontal, 8)
             .padding(.bottom, 12)
         }
-        .background(Theme.cyberCard)
+        .background(.regularMaterial)
+        // Add a subtle border for the glass edge effect
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.2), lineWidth: 1))
         .cornerRadius(20)
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.textSecondary.opacity(0.2), lineWidth: 1))
-        .shadow(color: Color(hex: deck.colorHex).opacity(0.2), radius: 10, x: 0, y: 5)
+        .shadow(color: Color(hex: deck.colorHex).opacity(0.3), radius: 15, x: 0, y: 10)
     }
 }
 
