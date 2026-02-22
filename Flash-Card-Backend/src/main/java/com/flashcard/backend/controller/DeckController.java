@@ -46,14 +46,14 @@ public class DeckController {
     }
 
     @Operation(summary = "Get user's personal flashcard decks")
-    @GetMapping("/my")
+    @GetMapping({"/my", "/library"})
     public ResponseEntity<List<DeckResponse>> getMyDecks(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         List<DeckResponse> decks = deckService.getMyDecks(userDetails.getId());
         return ResponseEntity.ok(decks);
     }
 
     @Operation(summary = "Get all public/marketplace decks")
-    @GetMapping("/market")
+    @GetMapping({"/market", "/marketplace"})
     public ResponseEntity<List<DeckResponse>> getMarketDecks(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         List<DeckResponse> decks = deckService.getMarketDecks(userDetails.getId());
         return ResponseEntity.ok(decks);

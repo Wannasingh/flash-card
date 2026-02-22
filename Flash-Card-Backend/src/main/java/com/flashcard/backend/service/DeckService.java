@@ -71,7 +71,7 @@ public class DeckService {
     public List<DeckResponse> getMyDecks(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
+
         List<UserDeck> myDecks = userDeckRepository.findByUser(user);
         return myDecks.stream()
                 .map(ud -> mapToResponse(ud.getDeck(), userId))
@@ -107,7 +107,7 @@ public class DeckService {
             }
             user.setCoins(user.getCoins() - deck.getPrice());
             userRepository.save(user);
-            
+
             // Optional: Give coins to creator
             User creator = deck.getCreator();
             if (!creator.getId().equals(userId)) {
@@ -160,6 +160,12 @@ public class DeckService {
             }
         }
 
+        long cardCount = cardRepository.countByDeck(deck);
+
+        // Generate consistent random color from title
+        int hash = deck.getTitle().hashCode();
+        String colorHex = String.format("%06X", (0xFFFFFF & hash));
+
         return DeckResponse.builder()
                 .id(deck.getId())
                 .title(deck.getTitle())
@@ -167,7 +173,11 @@ public class DeckService {
                 .tags(deck.getTags())
                 .isPublic(deck.getIsPublic())
                 .price(deck.getPrice())
-                .creatorName(deck.getCreator().getDisplayName() != null ? deck.getCreator().getDisplayName() : deck.getCreator().getUsername())
+                .creatorId(deck.getCreator().getId())
+                .creatorName(deck.getCreator().getDisplayName() != null ? deck.getCreator().getDisplayName()
+                        : deck.getCreator().getUsername())
+                .cardCount((int) cardCount)
+                .customColorHex(colorHex)
                 .createdAt(deck.getCreatedAt())
                 .updatedAt(deck.getUpdatedAt())
                 .isOwned(isOwned)

@@ -40,7 +40,8 @@ public class UserController {
 
     @GetMapping("/profile/{id}")
     @Operation(summary = "Get public profile by ID")
-    public ResponseEntity<com.flashcard.backend.payload.response.PublicProfileResponse> getPublicProfile(@PathVariable @NonNull Long id, HttpServletRequest request) {
+    public ResponseEntity<com.flashcard.backend.payload.response.PublicProfileResponse> getPublicProfile(
+            @PathVariable @NonNull Long id, HttpServletRequest request) {
         User user = userRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -52,9 +53,14 @@ public class UserController {
             } else {
                 proxiedImageUrl = "/api/user/profile/" + user.getId() + "/image";
             }
+
+            if (user.getImageUpdatedAt() != null) {
+                proxiedImageUrl += "?t=" + user.getImageUpdatedAt().toEpochMilli();
+            }
         }
 
-        com.flashcard.backend.payload.response.PublicProfileResponse response = com.flashcard.backend.payload.response.PublicProfileResponse.builder()
+        com.flashcard.backend.payload.response.PublicProfileResponse response = com.flashcard.backend.payload.response.PublicProfileResponse
+                .builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .displayName(user.getDisplayName())
@@ -66,13 +72,13 @@ public class UserController {
                 .activeAuraCode(user.getActiveAuraCode())
                 .activeSkinCode(user.getActiveSkinCode())
                 .build();
-        
+
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
     public JwtResponse getUserProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                      @NonNull HttpServletRequest request) {
+            @NonNull HttpServletRequest request) {
         if (userDetails == null) {
             throw new RuntimeException("User not authenticated");
         }
@@ -133,7 +139,8 @@ public class UserController {
 
     @Operation(summary = "View profile image of specific user (proxy)")
     @GetMapping("/profile/{id}/image")
-    public ResponseEntity<byte[]> viewProfileImageById(@PathVariable @NonNull Long id, org.springframework.web.context.request.WebRequest request) {
+    public ResponseEntity<byte[]> viewProfileImageById(@PathVariable @NonNull Long id,
+            org.springframework.web.context.request.WebRequest request) {
         User user = userRepository.findById(java.util.Objects.requireNonNull(id))
                 .orElse(null);
 
@@ -170,18 +177,21 @@ public class UserController {
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
-                    .cacheControl(org.springframework.http.CacheControl.maxAge(365, java.util.concurrent.TimeUnit.DAYS).cachePublic())
+                    .cacheControl(org.springframework.http.CacheControl.maxAge(365, java.util.concurrent.TimeUnit.DAYS)
+                            .cachePublic())
                     .eTag(eTag)
                     .body(imageData);
         } catch (Exception e) {
-            System.out.println("[API] ❌ Image proxy error for user " + id + " → " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            System.out.println("[API] ❌ Image proxy error for user " + id + " → " + e.getClass().getSimpleName() + ": "
+                    + e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @PutMapping("/profile")
     public JwtResponse updateProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                     @Valid @RequestBody ProfileUpdateRequest request) {
+            @Valid @RequestBody ProfileUpdateRequest profileRequest,
+            HttpServletRequest servletRequest) {
         if (userDetails == null) {
             throw new RuntimeException("User not authenticated");
         }
@@ -191,13 +201,13 @@ public class UserController {
         User user = userRepository.findById(java.util.Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (request.getDisplayName() != null) {
-            user.setDisplayName(request.getDisplayName());
+        if (profileRequest.getDisplayName() != null) {
+            user.setDisplayName(profileRequest.getDisplayName());
         }
-        
+
         // If image URL is updated manually, set source to MANUAL
-        if (request.getImageUrl() != null) {
-            user.setImageUrl(request.getImageUrl());
+        if (profileRequest.getImageUrl() != null) {
+            user.setImageUrl(profileRequest.getImageUrl());
             user.setImageSource("MANUAL");
             user.setImageUpdatedAt(Instant.now());
         }
@@ -208,13 +218,14 @@ public class UserController {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        return createJwtResponse(user, roles);
+        return createJwtResponse(user, roles, servletRequest);
     }
 
     @Operation(summary = "Upload profile image")
     @PostMapping(value = "/profile/image", consumes = "multipart/form-data")
     public JwtResponse uploadProfileImage(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                          @RequestPart("file") MultipartFile file) throws IOException, InterruptedException {
+            @RequestPart("file") MultipartFile file,
+            HttpServletRequest request) throws IOException, InterruptedException {
         if (userDetails == null) {
             throw new RuntimeException("User not authenticated");
         }
@@ -226,7 +237,8 @@ public class UserController {
 
         byte[] imageData = file.getBytes();
         String contentType = file.getContentType();
-        System.out.println("Received file upload: name=" + file.getOriginalFilename() + ", size=" + file.getSize() + ", contentType=" + contentType);
+        System.out.println("Received file upload: name=" + file.getOriginalFilename() + ", size=" + file.getSize()
+                + ", contentType=" + contentType);
 
         // Reject empty files
         if (imageData.length == 0) {
@@ -250,7 +262,7 @@ public class UserController {
             }
 
             String imageUrl = storageService.uploadProfilePicture(user.getId(), imageData, contentType);
-            
+
             user.setImageUrl(imageUrl);
             user.setImageSource("MANUAL");
             user.setImageUpdatedAt(Instant.now());
@@ -264,7 +276,7 @@ public class UserController {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        return createJwtResponse(user, roles);
+        return createJwtResponse(user, roles, request);
     }
 
     private JwtResponse createJwtResponse(User user, List<String> roles) {
@@ -279,6 +291,10 @@ public class UserController {
             if (request != null) {
                 String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
                 imageUrl = baseUrl + "/api/user/profile/" + user.getId() + "/image";
+
+                if (user.getImageUpdatedAt() != null) {
+                    imageUrl += "?t=" + user.getImageUpdatedAt().toEpochMilli();
+                }
             } else {
                 // Fallback: try signed URL
                 try {
@@ -301,8 +317,7 @@ public class UserController {
                 user.getWeeklyXP(),
                 badgeService.getUserBadges(user),
                 user.getActiveAuraCode(),
-                user.getActiveSkinCode()
-        );
+                user.getActiveSkinCode());
     }
 
     /**
@@ -310,7 +325,8 @@ public class UserController {
      * Returns null if the bytes don't match a known image type.
      */
     private String sniffImageType(byte[] data) {
-        if (data.length < 4) return null;
+        if (data.length < 4)
+            return null;
 
         // PNG: starts with 0x89 'P' 'N' 'G'
         if (data[0] == (byte) 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47) {

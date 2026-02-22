@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 import java.util.List;
 
@@ -30,6 +32,7 @@ public class Deck {
     private String description;
 
     @Column(name = "tags", columnDefinition = "varchar(255)[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
     private List<String> tags;
 
     @Column(name = "is_public", nullable = false)

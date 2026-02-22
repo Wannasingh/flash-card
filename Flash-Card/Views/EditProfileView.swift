@@ -11,6 +11,7 @@ struct EditProfileView: View {
     
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
+    @State private var showSuccessAlert: Bool = false
     
     var body: some View {
         ZStack {
@@ -105,6 +106,13 @@ struct EditProfileView: View {
         .onAppear {
             displayName = sessionStore.userProfile?.displayName ?? ""
         }
+        .alert("Success", isPresented: $showSuccessAlert) {
+            Button("OK") {
+                dismiss()
+            }
+        } message: {
+            Text("Profile updated successfully.")
+        }
     }
     
     private func saveProfile() {
@@ -132,11 +140,15 @@ struct EditProfileView: View {
                     sessionStore.userProfile = updatedProfile
                 }
                 
-                isLoading = false
-                dismiss()
+                await MainActor.run {
+                    isLoading = false
+                    showSuccessAlert = true
+                }
             } catch {
-                isLoading = false
-                errorMessage = error.localizedDescription
+                await MainActor.run {
+                    isLoading = false
+                    errorMessage = error.localizedDescription
+                }
             }
         }
     }

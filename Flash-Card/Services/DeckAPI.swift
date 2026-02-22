@@ -45,7 +45,7 @@ struct BrainDumpResponse: Codable {
 class DeckAPI {
     static let shared = DeckAPI()
     
-    private var baseURL: URL {
+    var baseURL: URL {
         AppConfig.backendBaseURL.appendingPathComponent("/api/decks")
     }
     

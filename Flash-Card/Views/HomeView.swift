@@ -2,60 +2,78 @@ import SwiftUI
 
 struct HomeView: View {
     
-    init() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        // Use UIColor based on our CyberDark theme
-        appearance.backgroundColor = UIColor(red: 0.06, green: 0.09, blue: 0.16, alpha: 1.0)
-        
-        // Unselected items are grey
-        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray
-        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.systemGray]
-        
-        // Selected items are electric blue
-        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Theme.electricBlue)
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor(Theme.electricBlue)]
-        
-        UITabBar.appearance().standardAppearance = appearance
-        if #available(iOS 15.0, *) {
-            UITabBar.appearance().scrollEdgeAppearance = appearance
-        }
+    enum Tab {
+        case market
+        case library
+        case study
+        case rankings
+        case profile
     }
-
+    
+    @State private var selectedTab: Tab = .market
+    // 0 = Menu Page, 1 = Content Page
+    @State private var currentPage: Int = 1
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
-
+    
     var body: some View {
         if !hasSeenOnboarding {
             OnboardingView()
         } else {
-            TabView {
-                DeckLibraryView()
-                    .tabItem {
-                        Label("Library", systemImage: "square.grid.2x2.fill")
+            // Horizontal Paging View
+            TabView(selection: $currentPage) {
+                // Page 0: The Menu
+                SideMenuView(selectedTab: $selectedTab, currentPage: $currentPage)
+                    .tag(0)
+                    .ignoresSafeArea()
+                
+                // Page 1: The Main Content
+                NavigationView {
+                    ZStack {
+                        // Content based on selection
+                        switch selectedTab {
+                        case .market:
+                            FlashCardFeedView()
+                        case .library:
+                            DeckLibraryView()
+                        case .study:
+                            StudySessionView()
+                        case .rankings:
+                            LeaderboardView()
+                        case .profile:
+                            ProfileView()
+                        }
+                        
+                        // Floating Menu Button (Top Left)
+                        VStack {
+                            HStack {
+                                Button(action: {
+                                    withAnimation {
+                                        currentPage = 0 // Go to Menu Page
+                                    }
+                                }) {
+                                    Image(systemName: "line.3.horizontal")
+                                        .font(.system(size: 24, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .padding(10)
+                                        .background(Color.black.opacity(0.5))
+                                        .clipShape(Circle())
+                                }
+                                .padding(.leading, 16)
+                                .padding(.top, 50) // Adjust for Safe Area
+                                Spacer()
+                            }
+                            Spacer()
+                        }
                     }
-
-                MarketplaceView()
-                    .tabItem {
-                        Label("Market", systemImage: "cart.fill")
-                    }
-
-                StudySessionView()
-                    .tabItem {
-                        // Eye-catching center button for studying
-                        Label("Study", systemImage: "flame.fill")
-                    }
-
-                LeaderboardView()
-                    .tabItem {
-                        Label("Rankings", systemImage: "trophy.fill")
-                    }
-
-                ProfileView()
-                    .tabItem {
-                        Label("Profile", systemImage: "person.crop.circle.fill")
-                    }
+                    .navigationBarHidden(true)
+                }
+                .navigationViewStyle(StackNavigationViewStyle())
+                .tag(1)
+                .ignoresSafeArea() // Ensure content goes edge-to-edge
             }
-            .accentColor(Theme.electricBlue)
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .ignoresSafeArea()
+            .background(Theme.cyberDark)
         }
     }
 }

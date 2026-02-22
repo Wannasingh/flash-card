@@ -3,9 +3,10 @@ import Foundation
 enum AppConfig {
     static var backendBaseURL: URL {
         if let v = Bundle.main.object(forInfoDictionaryKey: "BackendBaseURL") as? String, !v.isEmpty, !v.contains("$") {
-             return URL(string: v) ?? URL(string: "http://localhost:8081")!
+             return URL(string: v) ?? URL(string: "http://192.168.1.37:8081")!
         }
-        return URL(string: "http://localhost:8081")!
+        // Fallback to local IP for physical device support
+        return URL(string: "http://192.168.1.37:8081")!
     }
 
     static var googleClientId: String {

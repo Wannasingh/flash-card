@@ -83,7 +83,7 @@ public class SupabaseStorageService {
             throw new IOException("Supabase returned error " + response.statusCode() + ": " + response.body());
         }
 
-        System.out.println("Upload successful: " + fileName);
+        System.out.println("Upload successful. Response: " + response.body());
         return bucketName + "/" + fileName;
     }
 
