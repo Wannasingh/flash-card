@@ -1,34 +1,31 @@
 import SwiftUI
 
-// MARK: - Gen-Z Cyberpunk Theme Engine
+// MARK: - Legacy Theme Engine (Transitional)
+// We retain this so existing views compile, but point them
+// towards the current theme managed by ThemeManager.
+// Ideally, views should use @EnvironmentObject var themeManager: ThemeManager.
 enum Theme {
+    static var manager: ThemeManager { ThemeManager.shared }
+    static var current: AppTheme { ThemeManager.shared.currentTheme }
+    
     // Background Colors
-    static let cyberDark = Color(red: 0.06, green: 0.09, blue: 0.16)   // #0F172A
-    static let cyberCard = Color(red: 0.12, green: 0.16, blue: 0.25)   // Slightly brighter for cards
+    static var cyberDark: Color { current.background }
+    static var cyberCard: Color { current.surface }
     
     // Accents & Neons
-    static let neonPink = Color(red: 1.0, green: 0.0, blue: 0.5)       // #FF0080
-    static let cyanAccent = Color(red: 0.0, green: 0.9, blue: 1.0)     // #00E5FF
-    static let electricBlue = Color(red: 0.0, green: 0.39, blue: 1.0)  // #0063FF
-    static let cyberYellow = Color(red: 1.0, green: 0.9, blue: 0.0)    // #FFE600
-    static let matrixGreen = Color(red: 0.0, green: 1.0, blue: 0.0)    // #00FF00
+    static var neonPink: Color { current.primaryAccent }
+    static var cyanAccent: Color { current.secondaryAccent }
+    static var electricBlue: Color { current.secondaryAccent } // Fallback
+    static var cyberYellow: Color { current.warning }
+    static var matrixGreen: Color { current.highlight }
     
     // Text
-    static let textPrimary = Color.white
-    static let textSecondary = Color.gray
+    static var textPrimary: Color { current.textPrimary }
+    static var textSecondary: Color { current.textSecondary }
     
     // Gradients
-    static let neonGradient = LinearGradient(
-        gradient: Gradient(colors: [neonPink, electricBlue]),
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-    
-    static let cardGradient = LinearGradient(
-        gradient: Gradient(colors: [cyberCard, cyberCard.opacity(0.8)]),
-        startPoint: .top,
-        endPoint: .bottom
-    )
+    static var neonGradient: LinearGradient { current.mainGradient }
+    static var cardGradient: LinearGradient { current.cardGradient }
 }
 
 // Custom Font Modifier
@@ -47,6 +44,7 @@ extension View {
         self.modifier(CyberpunkFont(size: size, weight: weight))
     }
 }
+
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

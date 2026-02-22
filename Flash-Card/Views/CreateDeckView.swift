@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CreateDeckView: View {
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var themeManager: ThemeManager
     
     @State private var title: String = ""
     @State private var description: String = ""
@@ -26,7 +27,7 @@ struct CreateDeckView: View {
     
     var body: some View {
         ZStack {
-            Color.clear.liquidGlassBackground()
+            themeManager.currentTheme.background.ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // Custom Header
@@ -36,9 +37,9 @@ struct CreateDeckView: View {
                     }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(Theme.textPrimary)
+                            .foregroundColor(themeManager.currentTheme.textPrimary)
                             .padding(12)
-                            .background(Theme.cyberCard)
+                            .background(themeManager.currentTheme.surface)
                             .clipShape(Circle())
                     }
                     
@@ -46,7 +47,7 @@ struct CreateDeckView: View {
                     
                     Text("CREATE NEW DECK")
                         .cyberpunkFont(size: 20)
-                        .foregroundColor(Theme.textPrimary)
+                        .foregroundColor(themeManager.currentTheme.textPrimary)
                     
                     Spacer()
                     
@@ -63,31 +64,31 @@ struct CreateDeckView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("DECK TITLE")
                                 .font(.caption.bold())
-                                .foregroundColor(Theme.neonPink)
+                                .foregroundColor(themeManager.currentTheme.primaryAccent)
                             
                             TextField("e.g. JLPT N4 Grammar", text: $title)
                                 .font(.headline)
-                                .foregroundColor(Theme.textPrimary)
+                                .foregroundColor(themeManager.currentTheme.textPrimary)
                                 .padding()
-                                .background(Theme.cyberCard)
+                                .background(themeManager.currentTheme.surface)
                                 .cornerRadius(12)
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.textSecondary.opacity(0.3), lineWidth: 1))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeManager.currentTheme.textSecondary.opacity(0.3), lineWidth: 1))
                         }
                         
                         // Description Input
                         VStack(alignment: .leading, spacing: 8) {
                             Text("DESCRIPTION")
                                 .font(.caption.bold())
-                                .foregroundColor(Theme.neonPink)
+                                .foregroundColor(themeManager.currentTheme.primaryAccent)
                             
                             TextEditor(text: $description)
                                 .frame(height: 100)
                                 .font(.body)
-                                .foregroundColor(Theme.textPrimary)
+                                .foregroundColor(themeManager.currentTheme.textPrimary)
                                 .padding(8)
-                                .background(Theme.cyberCard)
+                                .background(themeManager.currentTheme.surface)
                                 .cornerRadius(12)
-                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.textSecondary.opacity(0.3), lineWidth: 1))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeManager.currentTheme.textSecondary.opacity(0.3), lineWidth: 1))
                             // Hack to hide deafult TextEditor background color in SwiftUI
                                 .scrollContentBackground(.hidden)
                         }
@@ -98,24 +99,24 @@ struct CreateDeckView: View {
                         }) {
                             HStack {
                                 Image(systemName: "sparkles")
-                                    .foregroundColor(Theme.cyberYellow)
+                                    .foregroundColor(themeManager.currentTheme.warning)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("AI BRAIN DUMP")
                                         .cyberpunkFont(size: 16)
-                                        .foregroundColor(Theme.textPrimary)
+                                        .foregroundColor(themeManager.currentTheme.textPrimary)
                                     Text("Paste your notes and let AI generate cards instantly.")
                                         .font(.caption2)
-                                        .foregroundColor(Theme.textSecondary)
+                                        .foregroundColor(themeManager.currentTheme.textSecondary)
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
-                                    .foregroundColor(Theme.textSecondary)
+                                    .foregroundColor(themeManager.currentTheme.textSecondary)
                             }
                             .padding()
                             .background(.ultraThinMaterial)
                             .cornerRadius(12)
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.cyberYellow.opacity(0.3), lineWidth: 1))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeManager.currentTheme.warning.opacity(0.3), lineWidth: 1))
                         }
                         .padding(.top, -8)
                         
@@ -123,7 +124,7 @@ struct CreateDeckView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("THEME COLOR")
                                 .font(.caption.bold())
-                                .foregroundColor(Theme.neonPink)
+                                .foregroundColor(themeManager.currentTheme.primaryAccent)
                             
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 50))], spacing: 16) {
                                 ForEach(colorOptions, id: \.self) { hex in
@@ -149,45 +150,45 @@ struct CreateDeckView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             Text("MARKETPLACE SETTINGS")
                                 .font(.caption.bold())
-                                .foregroundColor(Theme.neonPink)
+                                .foregroundColor(themeManager.currentTheme.primaryAccent)
                             
                             Toggle(isOn: $isPublic) {
                                 VStack(alignment: .leading) {
                                     Text("List on Creator Market")
                                         .font(.headline)
-                                        .foregroundColor(Theme.textPrimary)
+                                        .foregroundColor(themeManager.currentTheme.textPrimary)
                                     Text("Allow other users to discover and purchase your deck.")
                                         .font(.caption)
-                                        .foregroundColor(Theme.textSecondary)
+                                        .foregroundColor(themeManager.currentTheme.textSecondary)
                                 }
                             }
-                            .tint(Theme.neonPink)
+                            .tint(themeManager.currentTheme.primaryAccent)
                             
                             if isPublic {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("PRICE (COINS)")
                                         .font(.caption.bold())
-                                        .foregroundColor(Theme.textSecondary)
+                                        .foregroundColor(themeManager.currentTheme.textSecondary)
                                     
                                     HStack {
                                         Image(systemName: "bitcoinsign.circle.fill")
-                                            .foregroundColor(Theme.cyberYellow)
+                                            .foregroundColor(themeManager.currentTheme.warning)
                                         
                                         TextField("0 = Free", text: $price)
                                             .keyboardType(.numberPad)
-                                            .foregroundColor(Theme.cyberYellow)
+                                            .foregroundColor(themeManager.currentTheme.warning)
                                             .font(.headline)
                                     }
                                     .padding()
-                                    .background(Theme.cyberCard)
+                                    .background(themeManager.currentTheme.surface)
                                     .cornerRadius(12)
-                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.cyberYellow.opacity(0.3), lineWidth: 1))
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeManager.currentTheme.warning.opacity(0.3), lineWidth: 1))
                                 }
                                 .transition(.opacity.combined(with: .move(edge: .top)))
                             }
                         }
                         .padding()
-                        .background(Theme.cyberCard.opacity(0.5))
+                        .background(themeManager.currentTheme.surface.opacity(0.5))
                         .cornerRadius(16)
                         
                         if let error = errorMessage {
@@ -198,6 +199,7 @@ struct CreateDeckView: View {
                         
                     }
                     .padding()
+                    .padding(.bottom, 60) // Safe Area for Bottom Tab
                 }
                 
                 // Submit Button
@@ -219,18 +221,18 @@ struct CreateDeckView: View {
                     .background(
                         Group {
                             if title.isEmpty {
-                                Theme.textSecondary
+                                themeManager.currentTheme.textSecondary
                             } else {
-                                Theme.neonGradient
+                                themeManager.currentTheme.mainGradient
                             }
                         }
                     )
                     .cornerRadius(16)
-                    .shadow(color: title.isEmpty ? .clear : Theme.neonPink.opacity(0.5), radius: 10, y: 5)
+                    .shadow(color: title.isEmpty ? .clear : themeManager.currentTheme.primaryAccent.opacity(0.5), radius: 10, y: 5)
                 }
                 .disabled(title.isEmpty || isSubmitting)
                 .padding(.horizontal, 24)
-                .padding(.bottom, 30)
+                .padding(.bottom, 30) // Adjusted for tab bar
                 .padding(.top, 10)
             }
         }

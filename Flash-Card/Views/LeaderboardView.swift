@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LeaderboardView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var entries: [LeaderboardEntry] = []
     @State private var isWeekly = true
     @State private var isLoading = false
@@ -11,8 +12,13 @@ struct LeaderboardView: View {
     
     var body: some View {
         ZStack {
-            // Background: Liquid Glass Mesh
-            AnimatedGradientMesh()
+            // Background: Liquid Glass Mesh or Theme Background
+            themeManager.currentTheme.background
+                .ignoresSafeArea()
+            
+            // Optional: Soft gradient mesh on top
+            themeManager.currentTheme.mainGradient
+                .opacity(0.15)
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
@@ -21,7 +27,7 @@ struct LeaderboardView: View {
                     Text("HALL OF FAME")
                         .font(.system(size: 28, weight: .black, design: .rounded))
                         .italic()
-                        .foregroundStyle(.linearGradient(colors: [.white, .white.opacity(0.8)], startPoint: .top, endPoint: .bottom))
+                        .foregroundStyle(.linearGradient(colors: [themeManager.currentTheme.textPrimary, themeManager.currentTheme.textSecondary], startPoint: .top, endPoint: .bottom))
                     
                     Spacer()
                     
@@ -41,7 +47,7 @@ struct LeaderboardView: View {
                 if isLoading {
                     Spacer()
                     ProgressView()
-                        .tint(.white)
+                        .tint(themeManager.currentTheme.primaryAccent)
                     Spacer()
                 } else {
                     ScrollView {
@@ -97,7 +103,7 @@ struct LeaderboardView: View {
             
             // 1st Place
             Button(action: { selectedUserId = Int64(entries[0].userId) }) {
-                PodiumItem(entry: entries[0], place: 1, color: .orange)
+                PodiumItem(entry: entries[0], place: 1, color: themeManager.currentTheme.warning)
                     .scaleEffect(1.1)
                     .zIndex(1)
             }
@@ -105,7 +111,7 @@ struct LeaderboardView: View {
             
             // 3rd Place
             Button(action: { selectedUserId = Int64(entries[2].userId) }) {
-                PodiumItem(entry: entries[2], place: 3, color: .brown)
+                PodiumItem(entry: entries[2], place: 3, color: themeManager.currentTheme.secondaryAccent)
                     .scaleEffect(0.8)
             }
             .buttonStyle(PlainButtonStyle())
@@ -131,6 +137,7 @@ struct LeaderboardView: View {
 }
 
 struct PodiumItem: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let entry: LeaderboardEntry
     let place: Int
     let color: Color
@@ -148,14 +155,14 @@ struct PodiumItem: View {
                     CachedAsyncImage(url: url) { img in
                         img.resizable().clipShape(Circle())
                     } placeholder: {
-                        Image(systemName: "person.fill").foregroundStyle(.white.opacity(0.3))
+                        Image(systemName: "person.fill").foregroundStyle(themeManager.currentTheme.textPrimary.opacity(0.3))
                     }
                     .frame(width: 74, height: 74)
                     .aura(entry.activeAuraCode)
                 } else {
                     Image(systemName: "person.fill")
                         .font(.system(size: 40))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(themeManager.currentTheme.textPrimary.opacity(0.5))
                 }
                 
                 // Rank Badge
@@ -163,13 +170,14 @@ struct PodiumItem: View {
                     .font(.caption2.bold())
                     .padding(5)
                     .background(color)
+                    .foregroundColor(.white)
                     .clipShape(Circle())
                     .offset(x: 25, y: -25)
             }
             
             Text(entry.displayName ?? entry.username)
                 .font(.system(size: 14, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(themeManager.currentTheme.textPrimary)
                 .lineLimit(1)
             
             Text("\(Int(entry.xp)) XP")
@@ -181,59 +189,60 @@ struct PodiumItem: View {
 }
 
 struct LeaderboardRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let entry: LeaderboardEntry
     
     var body: some View {
         HStack(spacing: 15) {
             Text("\(entry.rank)")
                 .font(.system(size: 16, weight: .black))
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(themeManager.currentTheme.textSecondary.opacity(0.7))
                 .frame(width: 30)
             
             if let urlString = entry.imageUrl, let url = URL(string: urlString) {
                 CachedAsyncImage(url: url) { img in
                     img.resizable().clipShape(Circle())
                 } placeholder: {
-                    Circle().fill(.white.opacity(0.1))
+                    Circle().fill(themeManager.currentTheme.textPrimary.opacity(0.1))
                 }
                 .frame(width: 40, height: 40)
                 .aura(entry.activeAuraCode)
             } else {
-                Circle().fill(.white.opacity(0.1))
+                Circle().fill(themeManager.currentTheme.textPrimary.opacity(0.1))
                     .frame(width: 40, height: 40)
                     .aura(entry.activeAuraCode)
-                    .overlay(Image(systemName: "person.fill").font(.caption))
+                    .overlay(Image(systemName: "person.fill").font(.caption).foregroundColor(themeManager.currentTheme.textSecondary))
             }
             
             VStack(alignment: .leading) {
                 Text(entry.displayName ?? entry.username)
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(themeManager.currentTheme.textPrimary)
                 
                 HStack {
                     Image(systemName: "flame.fill")
-                        .foregroundColor(.orange)
+                        .foregroundColor(themeManager.currentTheme.warning)
                     Text("\(entry.streak) day streak")
                 }
                 .font(.system(size: 12))
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(themeManager.currentTheme.textSecondary)
             }
             
             Spacer()
             
             Text("\(Int(entry.xp))")
                 .font(.system(size: 18, weight: .black))
-                .foregroundColor(.white)
+                .foregroundColor(themeManager.currentTheme.textPrimary)
             Text("XP")
                 .font(.caption2.bold())
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(themeManager.currentTheme.textSecondary)
         }
         .padding()
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .stroke(.white.opacity(0.1), lineWidth: 1)
+                .stroke(themeManager.currentTheme.textPrimary.opacity(0.1), lineWidth: 1)
         )
     }
 }

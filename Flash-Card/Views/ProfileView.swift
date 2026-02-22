@@ -3,13 +3,14 @@ import StoreKit
 
 struct ProfileView: View {
     @EnvironmentObject var sessionStore: SessionStore
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var storeManager = StoreKitManager()
     @State private var showPurchaseLoading = false
 
     var body: some View {
         NavigationView {
             ZStack {
-                Color.clear.liquidGlassBackground()
+                themeManager.currentTheme.background.ignoresSafeArea()
                 
                 ScrollView {
                     VStack(spacing: 24) {
@@ -21,30 +22,30 @@ struct ProfileView: View {
                                 } placeholder: {
                                     Image(systemName: "person.crop.circle.badge.checkmark")
                                         .resizable()
-                                        .foregroundColor(Theme.neonPink)
+                                        .foregroundColor(themeManager.currentTheme.primaryAccent)
                                 }
                                 .frame(width: 80, height: 80)
                                 .clipShape(Circle())
                                 .aura(sessionStore.userProfile?.activeAuraCode)
-                                .overlay(Circle().stroke(Theme.cyanAccent, lineWidth: 2))
+                                .overlay(Circle().stroke(themeManager.currentTheme.highlight, lineWidth: 2))
                             } else {
                                 Image(systemName: "person.crop.circle.fill")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 80, height: 80)
                                     .aura(sessionStore.userProfile?.activeAuraCode)
-                                    .foregroundColor(Theme.neonPink)
-                                    .overlay(Circle().stroke(Theme.cyanAccent, lineWidth: 2))
+                                    .foregroundColor(themeManager.currentTheme.primaryAccent)
+                                    .overlay(Circle().stroke(themeManager.currentTheme.highlight, lineWidth: 2))
                             }
 
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(sessionStore.userProfile?.displayName ?? sessionStore.userProfile?.username ?? "Cyber Player")
                                     .cyberpunkFont(size: 22)
-                                    .foregroundColor(Theme.textPrimary)
+                                    .foregroundColor(themeManager.currentTheme.textPrimary)
                                 
                                 Text(sessionStore.userProfile?.email ?? "Netrunner")
                                     .font(.subheadline)
-                                    .foregroundColor(Theme.textSecondary)
+                                    .foregroundColor(themeManager.currentTheme.textSecondary)
                             }
                             Spacer()
                         }
@@ -56,14 +57,14 @@ struct ProfileView: View {
                         
                         // Gamification Dashboard
                         HStack(spacing: 16) {
-                            StatBox(icon: "flame.fill", title: "Streak", value: "\(sessionStore.userProfile?.streakDays ?? 0) Days", color: Theme.cyberYellow)
-                            StatBox(icon: "bitcoinsign.circle.fill", title: "Coins", value: "\(sessionStore.userProfile?.coins ?? 0) 🪙", color: Theme.electricBlue)
+                            StatBox(icon: "flame.fill", title: "Streak", value: "\(sessionStore.userProfile?.streakDays ?? 0) Days", color: themeManager.currentTheme.warning)
+                            StatBox(icon: "bitcoinsign.circle.fill", title: "Coins", value: "\(sessionStore.userProfile?.coins ?? 0) 🪙", color: themeManager.currentTheme.highlight)
                         }
                         .padding(.horizontal)
                         
                         HStack(spacing: 16) {
-                            StatBox(icon: "bolt.fill", title: "Total XP", value: "\(sessionStore.userProfile?.totalXP ?? 0)", color: Theme.cyanAccent)
-                            StatBox(icon: "target", title: "Weekly XP", value: "\(sessionStore.userProfile?.weeklyXP ?? 0)", color: Theme.neonPink)
+                            StatBox(icon: "bolt.fill", title: "Total XP", value: "\(sessionStore.userProfile?.totalXP ?? 0)", color: themeManager.currentTheme.secondaryAccent)
+                            StatBox(icon: "target", title: "Weekly XP", value: "\(sessionStore.userProfile?.weeklyXP ?? 0)", color: themeManager.currentTheme.primaryAccent)
                         }
                         .padding(.horizontal)
                         
@@ -72,7 +73,7 @@ struct ProfileView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("MY BADGES")
                                     .font(.caption.bold())
-                                    .foregroundColor(Theme.cyanAccent)
+                                    .foregroundColor(themeManager.currentTheme.secondaryAccent)
                                 
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 15) {
@@ -90,7 +91,7 @@ struct ProfileView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("STORE")
                                 .font(.caption.bold())
-                                .foregroundColor(Theme.cyberYellow)
+                                .foregroundColor(themeManager.currentTheme.warning)
                             
                             ForEach(storeManager.coinProducts) { product in
                                 Button(action: {
@@ -102,16 +103,16 @@ struct ProfileView: View {
                                 }) {
                                     HStack {
                                         Image(systemName: "bitcoinsign.circle.fill")
-                                            .foregroundColor(Theme.cyberYellow)
+                                            .foregroundColor(themeManager.currentTheme.warning)
                                             .font(.title2)
                                         
                                         VStack(alignment: .leading) {
                                             Text(product.displayName)
                                                 .font(.headline)
-                                                .foregroundColor(Theme.textPrimary)
+                                                .foregroundColor(themeManager.currentTheme.textPrimary)
                                             Text(product.description)
                                                 .font(.caption)
-                                                .foregroundColor(Theme.textSecondary)
+                                                .foregroundColor(themeManager.currentTheme.textSecondary)
                                         }
                                         Spacer()
                                         
@@ -122,7 +123,7 @@ struct ProfileView: View {
                                                 .font(.subheadline.bold())
                                                 .padding(.horizontal, 12)
                                                 .padding(.vertical, 6)
-                                                .background(Theme.neonGradient)
+                                                .background(themeManager.currentTheme.mainGradient)
                                                 .foregroundColor(.white)
                                                 .cornerRadius(12)
                                         }
@@ -143,31 +144,33 @@ struct ProfileView: View {
                             }
                             
                             NavigationLink(destination: EditProfileView()) {
-                                ActionRow(icon: "pencil.line", title: "Edit Profile", color: Theme.cyanAccent)
+                                ActionRow(icon: "pencil.line", title: "Edit Profile", color: themeManager.currentTheme.highlight)
                             }
                             
                             Button(action: {
                                 sessionStore.logout()
                             }) {
-                                ActionRow(icon: "power", title: "System Logout", color: Theme.neonPink)
+                                ActionRow(icon: "power", title: "System Logout", color: themeManager.currentTheme.primaryAccent)
                             }
                         }
                         .padding(.horizontal)
                     }
                     .padding(.vertical)
+                    .padding(.bottom, 60) // Safe Area for Bottom Tab
                 }
                 .refreshable {
                     await sessionStore.refreshProfile()
                 }
             }
             .navigationTitle("Player Stats")
-            .navigationBarBackground()
+            .navigationBarBackground(themeColor: themeManager.currentTheme.primaryAccent)
         }
     }
 }
 
 // Reusable UI Components for Profile
 struct StatBox: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var icon: String
     var title: String
     var value: String
@@ -180,10 +183,10 @@ struct StatBox: View {
                 .foregroundColor(color)
             Text(value)
                 .cyberpunkFont(size: 18)
-                .foregroundColor(Theme.textPrimary)
+                .foregroundColor(themeManager.currentTheme.textPrimary)
             Text(title)
                 .font(.caption)
-                .foregroundColor(Theme.textSecondary)
+                .foregroundColor(themeManager.currentTheme.textSecondary)
                 .textCase(.uppercase)
         }
         .frame(maxWidth: .infinity)
@@ -195,6 +198,7 @@ struct StatBox: View {
 }
 
 struct ActionRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var icon: String
     var title: String
     var color: Color
@@ -206,10 +210,10 @@ struct ActionRow: View {
                 .frame(width: 30)
             Text(title)
                 .cyberpunkFont(size: 16)
-                .foregroundColor(Theme.textPrimary)
+                .foregroundColor(themeManager.currentTheme.textPrimary)
             Spacer()
             Image(systemName: "chevron.right")
-                .foregroundColor(Theme.textSecondary)
+                .foregroundColor(themeManager.currentTheme.textSecondary)
                 .font(.system(size: 14))
         }
         .padding()
@@ -220,7 +224,7 @@ struct ActionRow: View {
 }
 
 extension View {
-    func navigationBarBackground() -> some View {
+    func navigationBarBackground(themeColor: Color) -> some View {
         self.onAppear {
             let appearance = UINavigationBarAppearance()
             appearance.configureWithTransparentBackground() // Make the navigation bar glass
@@ -230,7 +234,7 @@ extension View {
             
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
-            UINavigationBar.appearance().tintColor = UIColor(Theme.cyanAccent)
+            UINavigationBar.appearance().tintColor = UIColor(themeColor)
         }
     }
 }
@@ -239,5 +243,6 @@ struct ProfileView_Previews: PreviewProvider {
     static var previews: some View {
         ProfileView()
             .environmentObject(SessionStore.shared)
+            .environmentObject(ThemeManager.shared)
     }
 }

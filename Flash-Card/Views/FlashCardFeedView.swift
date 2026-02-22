@@ -4,43 +4,45 @@ struct FlashCardFeedView: View {
     @State private var trendingDecks: [DeckModel] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @EnvironmentObject var themeManager: ThemeManager
     
     // Vertical Page Tab View Style for "Short Video" feel
     var body: some View {
         ZStack {
             // Background
-            Color.black.edgesIgnoringSafeArea(.all)
+            themeManager.currentTheme.background.edgesIgnoringSafeArea(.all)
             
             if isLoading {
                 VStack {
                     ProgressView()
                         .scaleEffect(1.5)
-                        .progressViewStyle(CircularProgressViewStyle(tint: Theme.neonPink))
+                        .progressViewStyle(CircularProgressViewStyle(tint: themeManager.currentTheme.primaryAccent))
                     Text("Connecting to Neural Net...")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(themeManager.currentTheme.textSecondary)
                         .padding(.top, 10)
                 }
             } else if let errorMessage = errorMessage {
                 VStack(spacing: 16) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 50))
-                        .foregroundColor(.red)
+                        .foregroundColor(themeManager.currentTheme.warning)
                     Text(errorMessage)
                         .padding()
                         .multilineTextAlignment(.center)
-                        .foregroundColor(.white)
+                        .foregroundColor(themeManager.currentTheme.textPrimary)
                         .font(.caption)
                     
                     Text("URL: \(DeckAPI.shared.baseURL)")
                         .font(.caption2)
-                        .foregroundColor(.gray)
+                        .foregroundColor(themeManager.currentTheme.textSecondary)
                         
                     Button("Retry") {
                         Task { await loadFeed() }
                     }
                     .padding()
-                    .background(Theme.neonPink)
+                    .background(themeManager.currentTheme.primaryAccent)
+                    .foregroundColor(.white)
                     .cornerRadius(10)
                 }
             } else {
@@ -56,7 +58,7 @@ struct FlashCardFeedView: View {
                     .rotationEffect(.degrees(90)) // Rotate TabView to scroll vertically
                     .frame(width: proxy.size.height, height: proxy.size.width)
                     .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                    .tabViewStyle(.page(indexDisplayMode: .never))
                     .ignoresSafeArea()
                 }
             }
@@ -97,8 +99,10 @@ struct FlashCardFeedView: View {
 }
 
 struct FeedCardView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let deck: DeckModel
-    @State private var isFlipped = false
+    @State private var isLiked = false
+    @State private var isSaved = false
     
     var body: some View {
         ZStack {
@@ -106,11 +110,15 @@ struct FeedCardView: View {
             Rectangle()
                 .fill(
                     LinearGradient(
-                        gradient: Gradient(colors: [Color(hex: deck.colorHex), Color.black]),
+                        gradient: Gradient(colors: [Color(hex: deck.colorHex), themeManager.currentTheme.background]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
+                .ignoresSafeArea()
+            
+            // Subtle dark overlay to ensure text readability
+            themeManager.currentTheme.feedOverlayGradient
                 .ignoresSafeArea()
             
             // Content Overlay
@@ -119,20 +127,23 @@ struct FeedCardView: View {
                 
                 HStack(alignment: .bottom) {
                     // Deck Info Card (Bottom Left)
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 8) {
                             Image(systemName: "person.circle.fill")
                                 .resizable()
-                                .frame(width: 30, height: 30)
+                                .frame(width: 32, height: 32)
                                 .foregroundColor(.white)
+                                .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                            
                             Text("@\(deck.creatorName)")
-                                .font(.headline)
+                                .font(.subheadline)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                         }
                         
                         Text(deck.title)
-                            .font(.system(size: 24, weight: .heavy, design: .rounded))
+                            .font(.title2)
+                            .fontWeight(.heavy)
                             .lineLimit(2)
                             .foregroundColor(.white)
                         
@@ -140,54 +151,102 @@ struct FeedCardView: View {
                             Text(description)
                                 .font(.subheadline)
                                 .lineLimit(3)
-                                .opacity(0.8)
-                                .foregroundColor(.white)
+                                .foregroundColor(.white.opacity(0.85))
                         }
                         
-                        HStack {
+                        // Tags / Metadata
+                        HStack(spacing: 8) {
                             Label("\(deck.cardCount) Cards", systemImage: "rectangle.stack.fill")
                                 .font(.caption)
-                                .padding(6)
-                                .background(.ultraThinMaterial)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.black.opacity(0.4))
                                 .cornerRadius(8)
                                 .foregroundColor(.white)
                             
                             Label("\(deck.price) Coins", systemImage: "bitcoinsign.circle.fill")
                                 .font(.caption)
-                                .padding(6)
-                                .background(.ultraThinMaterial)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.black.opacity(0.4))
                                 .cornerRadius(8)
-                                .foregroundColor(Theme.cyberYellow)
+                                .foregroundColor(themeManager.currentTheme.warning)
                         }
                     }
-                    .shadow(radius: 5)
+                    .padding(.bottom, 20)
+                    .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
                     
                     Spacer()
                     
                     // Right Side Action Buttons
-                    VStack(spacing: 25) {
-                        ActionIcon(icon: "heart.fill", label: "Like")
-                        
-                        NavigationLink(destination: DeckDetailView(deck: deck, isOwned: false)) {
-                            VStack(spacing: 5) {
-                                Image(systemName: "cart.fill.badge.plus")
-                                    .font(.system(size: 30))
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .background(Theme.neonPink)
-                                    .clipShape(Circle())
-                                Text("Get")
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                            }
+                    VStack(spacing: 24) {
+                        // Profile Pic (Action representation)
+                        VStack(spacing: -10) {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .frame(width: 48, height: 48)
+                                .foregroundColor(.white)
+                                .background(Color.gray)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                            
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(themeManager.currentTheme.primaryAccent)
+                                .background(Color.white)
+                                .clipShape(Circle())
                         }
                         
-                        ActionIcon(icon: "arrowshape.turn.up.right.fill", label: "Share")
+                        // Like Button
+                        Button(action: {
+                            // Trigger haptic feedback
+                            let generator = UIImpactFeedbackGenerator(style: .medium)
+                            generator.impactOccurred()
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0)) {
+                                isLiked.toggle()
+                            }
+                        }) {
+                            ActionIcon(
+                                icon: isLiked ? "heart.fill" : "heart",
+                                label: "Like",
+                                iconColor: isLiked ? themeManager.currentTheme.primaryAccent : .white
+                            )
+                        }
+                        
+                        // Save Button
+                        Button(action: {
+                            withAnimation { isSaved.toggle() }
+                        }) {
+                            ActionIcon(
+                                icon: isSaved ? "bookmark.fill" : "bookmark",
+                                label: "Save",
+                                iconColor: isSaved ? themeManager.currentTheme.warning : .white
+                            )
+                        }
+                        
+                        // Get/Buy Button
+                        NavigationLink(destination: DeckDetailView(deck: deck, isOwned: false)) {
+                            ActionIcon(icon: "arrow.down.circle.fill", label: "Get", iconColor: themeManager.currentTheme.highlight)
+                        }
+                        
+                        // Share Button
+                        Button(action: {
+                            // Share action
+                        }) {
+                            ActionIcon(icon: "arrowshape.turn.up.right.fill", label: "Share", iconColor: .white)
+                        }
                     }
+                    .padding(.bottom, 20)
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 100) // Space for TabBar
+                .padding(.horizontal, 16)
+                .padding(.bottom, 60) // Extra padding for new Bottom TabBar
+            }
+        }
+        .onTapGesture(count: 2) {
+            // Double tap to like
+            let generator = UIImpactFeedbackGenerator(style: .heavy)
+            generator.impactOccurred()
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0)) {
+                isLiked = true
             }
         }
     }
@@ -196,18 +255,19 @@ struct FeedCardView: View {
 struct ActionIcon: View {
     var icon: String
     var label: String
+    var iconColor: Color = .white
     
     var body: some View {
-        VStack(spacing: 5) {
+        VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 30))
-                .foregroundColor(.white)
-                .shadow(radius: 5)
+                .font(.system(size: 32))
+                .foregroundColor(iconColor)
+                .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
+            
             Text(label)
-                .font(.caption)
-                .fontWeight(.bold)
+                .font(.system(size: 12, weight: .bold))
                 .foregroundColor(.white)
-                .shadow(radius: 5)
+                .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
         }
     }
 }

@@ -13,6 +13,7 @@ struct DeckModel: Identifiable {
 }
 
 struct DeckLibraryView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var ownedDecks: [DeckModel] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -21,32 +22,33 @@ struct DeckLibraryView: View {
     var body: some View {
         ZStack {
             // Background
-            Theme.cyberDark.ignoresSafeArea()
+            themeManager.currentTheme.background.ignoresSafeArea()
             
             if isLoading {
                 VStack {
                     ProgressView()
                         .scaleEffect(1.5)
-                        .progressViewStyle(CircularProgressViewStyle(tint: Theme.neonPink))
+                        .progressViewStyle(CircularProgressViewStyle(tint: themeManager.currentTheme.primaryAccent))
                     Text("Loading Arsenal...")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(themeManager.currentTheme.textSecondary)
                         .padding(.top, 10)
                 }
             } else if let errorMessage = errorMessage {
                 VStack(spacing: 16) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 50))
-                        .foregroundColor(.red)
+                        .foregroundColor(themeManager.currentTheme.warning)
                     Text(errorMessage)
                         .padding()
                         .multilineTextAlignment(.center)
-                        .foregroundColor(.white)
+                        .foregroundColor(themeManager.currentTheme.textPrimary)
                     Button("Retry") {
                         Task { await loadLibrary() }
                     }
                     .padding()
-                    .background(Theme.neonPink)
+                    .background(themeManager.currentTheme.primaryAccent)
+                    .foregroundColor(.white)
                     .cornerRadius(10)
                 }
             } else if ownedDecks.isEmpty {
@@ -54,14 +56,14 @@ struct DeckLibraryView: View {
                 VStack(spacing: 20) {
                     Image(systemName: "square.stack.3d.up.slash.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(.gray)
+                        .foregroundColor(themeManager.currentTheme.textSecondary)
                     Text("Your Arsenal is Empty")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .foregroundColor(themeManager.currentTheme.textPrimary)
                     Text("Go to the Market to find decks or create your own.")
                         .font(.body)
-                        .foregroundColor(.gray)
+                        .foregroundColor(themeManager.currentTheme.textSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                     
@@ -69,7 +71,7 @@ struct DeckLibraryView: View {
                         Text("Create New Deck")
                             .fontWeight(.bold)
                             .padding()
-                            .background(Theme.neonPink)
+                            .background(themeManager.currentTheme.primaryAccent)
                             .foregroundColor(.white)
                             .cornerRadius(10)
                     }
@@ -78,10 +80,6 @@ struct DeckLibraryView: View {
                 // TikTok Style Feed for Owned Decks
                 GeometryReader { proxy in
                     TabView {
-                        // First Page: "Create New / Header" or just the first deck?
-                        // Let's put "Create New" as the first "Card" in the feed or last?
-                        // Let's just list the decks.
-                        
                         ForEach(ownedDecks) { deck in
                             LibraryDeckFeedCard(deck: deck)
                                 .rotationEffect(.degrees(-90))
@@ -96,7 +94,7 @@ struct DeckLibraryView: View {
                     .rotationEffect(.degrees(90))
                     .frame(width: proxy.size.height, height: proxy.size.width)
                     .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                    .tabViewStyle(.page(indexDisplayMode: .never))
                     .ignoresSafeArea()
                 }
             }
@@ -138,6 +136,7 @@ struct DeckLibraryView: View {
 
 // Full Screen Card for Owned Decks
 struct LibraryDeckFeedCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let deck: DeckModel
     
     var body: some View {
@@ -146,11 +145,14 @@ struct LibraryDeckFeedCard: View {
             Rectangle()
                 .fill(
                     LinearGradient(
-                        gradient: Gradient(colors: [Color(hex: deck.colorHex), Color.black]),
+                        gradient: Gradient(colors: [Color(hex: deck.colorHex), themeManager.currentTheme.background]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
+                .ignoresSafeArea()
+            
+            themeManager.currentTheme.feedOverlayGradient
                 .ignoresSafeArea()
             
             VStack {
@@ -160,12 +162,13 @@ struct LibraryDeckFeedCard: View {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Image(systemName: "checkmark.seal.fill")
-                                .foregroundColor(Theme.matrixGreen)
+                                .foregroundColor(themeManager.currentTheme.highlight)
                             Text("OWNED")
                                 .font(.caption.bold())
-                                .foregroundColor(Theme.matrixGreen)
-                                .padding(4)
-                                .background(Theme.matrixGreen.opacity(0.2))
+                                .foregroundColor(themeManager.currentTheme.highlight)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 4)
+                                .background(themeManager.currentTheme.highlight.opacity(0.2))
                                 .cornerRadius(4)
                         }
                         
@@ -181,8 +184,9 @@ struct LibraryDeckFeedCard: View {
                         HStack {
                             Label("\(deck.cardCount) Cards", systemImage: "rectangle.stack.fill")
                                 .font(.caption)
-                                .padding(6)
-                                .background(.ultraThinMaterial)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.black.opacity(0.4))
                                 .cornerRadius(8)
                                 .foregroundColor(.white)
                         }
@@ -196,7 +200,7 @@ struct LibraryDeckFeedCard: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Theme.electricBlue)
+                            .background(themeManager.currentTheme.primaryAccent)
                             .foregroundColor(.white)
                             .cornerRadius(12)
                         }
@@ -214,22 +218,24 @@ struct LibraryDeckFeedCard: View {
 }
 
 struct CreateNewDeckCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    
     var body: some View {
         ZStack {
-            Theme.cyberDark.ignoresSafeArea()
+            themeManager.currentTheme.background.ignoresSafeArea()
             
             VStack(spacing: 20) {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 80))
-                    .foregroundColor(Theme.neonPink)
+                    .foregroundColor(themeManager.currentTheme.primaryAccent)
                 
                 Text("Expand Your Arsenal")
                     .font(.title)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(themeManager.currentTheme.textPrimary)
                 
                 Text("Create a new deck to master new skills.")
-                    .foregroundColor(.gray)
+                    .foregroundColor(themeManager.currentTheme.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                 
@@ -239,17 +245,10 @@ struct CreateNewDeckCard: View {
                         .foregroundColor(.white)
                         .padding()
                         .frame(width: 200)
-                        .background(Theme.neonPink)
+                        .background(themeManager.currentTheme.primaryAccent)
                         .cornerRadius(12)
                 }
             }
         }
-    }
-}
-
-
-struct DeckLibraryView_Previews: PreviewProvider {
-    static var previews: some View {
-        DeckLibraryView()
     }
 }
