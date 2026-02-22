@@ -270,7 +270,7 @@ struct FeedCardView: View {
                     .padding(.bottom, 10)
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 120) // Extra padding to clear the HomeView Bottom TabBar completely
+                .padding(.bottom, 60) // Reduced padding to float naturally above native TabView
             }
         }
         .onTapGesture(count: 2) {

@@ -10,10 +10,10 @@ struct HomeView: View {
             TabView {
                 NavigationStack {
                     FlashCardFeedView()
-                        .navigationTitle("Market")
+                        .toolbar(.hidden, for: .navigationBar) // Ensure video is edge-to-edge
                 }
                 .tabItem {
-                    Label("Market", systemImage: "cart.fill")
+                    Label("Home", systemImage: "house.fill")
                 }
                 
                 NavigationStack {
