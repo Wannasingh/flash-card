@@ -126,17 +126,31 @@ struct FeedCardView: View {
                 HStack(alignment: .bottom) {
                     // Deck Info Card (Bottom Left)
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "person.circle.fill")
-                                .resizable()
-                                .frame(width: 32, height: 32)
-                                .foregroundColor(.white)
-                                .overlay(Circle().stroke(Color.white, lineWidth: 1))
-                            
-                            Text("@\(deck.creatorName)")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
+                        NavigationLink(destination: PublicProfileView(userId: deck.creatorId ?? 0)) {
+                            HStack(spacing: 8) {
+                                if let imageUrl = deck.creatorImageUrl, let url = URL(string: imageUrl) {
+                                    CachedAsyncImage(url: url) { image in
+                                        image.resizable()
+                                            .scaledToFill()
+                                    } placeholder: {
+                                        ProgressView()
+                                    }
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                                } else {
+                                    Image(systemName: "person.circle.fill")
+                                        .resizable()
+                                        .frame(width: 32, height: 32)
+                                        .foregroundColor(.white)
+                                        .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                                }
+                                
+                                Text("@\(deck.creatorName)")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            }
                         }
                         
                         Text(deck.title)
@@ -179,33 +193,28 @@ struct FeedCardView: View {
                     // Right Side Action Buttons
                     VStack(spacing: 20) {
                         // Profile Pic (Action representation)
-                        Button(action: {
-                            Task {
-                                guard let creatorId = deck.creatorId else { return }
-                                
-                                do {
-                                    if isFollowed {
-                                        try await UserAPI.shared.unfollowUser(userId: creatorId)
-                                    } else {
-                                        try await UserAPI.shared.followUser(userId: creatorId)
-                                    }
-                                    
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                                        isFollowed.toggle()
-                                    }
-                                } catch {
-                                    print("Follow error: \(error)")
-                                }
-                            }
-                        }) {
+                        NavigationLink(destination: PublicProfileView(userId: deck.creatorId ?? 0)) {
                             VStack(spacing: -10) {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
+                                if let imageUrl = deck.creatorImageUrl, let url = URL(string: imageUrl) {
+                                    CachedAsyncImage(url: url) { image in
+                                        image.resizable()
+                                            .scaledToFill()
+                                    } placeholder: {
+                                        ProgressView()
+                                    }
                                     .frame(width: 48, height: 48)
-                                    .foregroundColor(.white)
-                                    .background(Color.gray)
                                     .clipShape(Circle())
+                                    .background(Color.gray)
                                     .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                                } else {
+                                    Image(systemName: "person.circle.fill")
+                                        .resizable()
+                                        .frame(width: 48, height: 48)
+                                        .foregroundColor(.white)
+                                        .background(Color.gray)
+                                        .clipShape(Circle())
+                                        .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                                }
                                 
                                 if !isFollowed {
                                     Image(systemName: "plus.circle.fill")

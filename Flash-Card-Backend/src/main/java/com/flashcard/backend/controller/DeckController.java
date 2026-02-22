@@ -59,6 +59,13 @@ public class DeckController {
         return ResponseEntity.ok(decks);
     }
 
+    @Operation(summary = "Get public decks of a specific user")
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<DeckResponse>> getUserDecks(@PathVariable Long userId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        List<DeckResponse> decks = deckService.getUserPublicDecks(userId, userDetails.getId());
+        return ResponseEntity.ok(decks);
+    }
+
     @Operation(summary = "Acquire (Buy/Add) a public deck to user's library")
     @PostMapping("/{deckId}/acquire")
     public ResponseEntity<DeckResponse> acquireDeck(@PathVariable Long deckId,

@@ -10,8 +10,7 @@ struct ProfileView: View {
     @State private var isLoadingDecks = true
 
     var body: some View {
-        NavigationView {
-            ZStack {
+        ZStack {
                 themeManager.currentTheme.background.ignoresSafeArea()
                 
                 ScrollView {
@@ -189,11 +188,10 @@ struct ProfileView: View {
                 }
                 .padding(.vertical)
                 .padding(.bottom, 60) // Safe Area for Bottom Tab
-            }
-            .refreshable {
-                await sessionStore.refreshProfile()
-                await loadMyCreatedDecks()
-            }
+        }
+        .refreshable {
+            await sessionStore.refreshProfile()
+            await loadMyCreatedDecks()
         }
         .task {
             await loadMyCreatedDecks()
@@ -219,7 +217,8 @@ struct ProfileView: View {
                     colorHex: dto.customColorHex ?? "00E5FF",
                     description: dto.description,
                     coverImageUrl: dto.coverImageUrl,
-                    previewVideoUrl: dto.previewVideoUrl
+                    previewVideoUrl: dto.previewVideoUrl,
+                    creatorImageUrl: dto.creatorImageUrl
                 )
             }.filter { $0.creatorName == sessionStore.userProfile?.username || $0.creatorName == sessionStore.userProfile?.displayName } // simple client side filter if API returns all
         } catch {

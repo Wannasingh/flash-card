@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A530C5172FCEDBC911C90C11 /* Flash-Card/App/AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB48D2F3E2CF8A4387DB9D40 /* Flash-Card/App/AppTheme.swift */; };
 		B3D1696AE209591D19823F4B /* Flash-Card/App/ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46057184A5BFED5FD6E5DB87 /* Flash-Card/App/ThemeManager.swift */; };
 		F9309C2717C92CFCFB1781E8 /* Flash-Card/App/AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B27B29FE03BE1ABA71624A /* Flash-Card/App/AppTheme.swift */; };
 /* End PBXBuildFile section */
@@ -37,7 +36,6 @@
 		46057184A5BFED5FD6E5DB87 /* Flash-Card/App/ThemeManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Flash-Card/App/ThemeManager.swift"; sourceTree = SOURCE_ROOT; };
 		8C5F14D4F4192602C6BE21AC /* Release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Configs/Release.xcconfig; sourceTree = "<group>"; };
 		E5B27B29FE03BE1ABA71624A /* Flash-Card/App/AppTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Flash-Card/App/AppTheme.swift"; sourceTree = SOURCE_ROOT; };
-		FB48D2F3E2CF8A4387DB9D40 /* Flash-Card/App/AppTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Flash-Card/App/AppTheme.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -88,7 +86,6 @@
 			children = (
 				E5B27B29FE03BE1ABA71624A /* Flash-Card/App/AppTheme.swift */,
 				46057184A5BFED5FD6E5DB87 /* Flash-Card/App/ThemeManager.swift */,
-				FB48D2F3E2CF8A4387DB9D40 /* Flash-Card/App/AppTheme.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -264,7 +261,6 @@
 			files = (
 				F9309C2717C92CFCFB1781E8 /* Flash-Card/App/AppTheme.swift in Sources */,
 				B3D1696AE209591D19823F4B /* Flash-Card/App/ThemeManager.swift in Sources */,
-				A530C5172FCEDBC911C90C11 /* Flash-Card/App/AppTheme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

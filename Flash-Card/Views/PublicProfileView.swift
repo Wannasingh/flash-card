@@ -3,6 +3,7 @@ import SwiftUI
 struct PublicProfileView: View {
     let userId: Int64
     @State private var profile: PublicProfileResponse?
+    @State private var publicDecks: [DeckModel] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
     @Environment(\.dismiss) var dismiss
@@ -43,7 +44,7 @@ struct PublicProfileView: View {
                     .background(.white.opacity(0.05))
                     .cornerRadius(15)
                     
-                    // Badge Case
+                    // Badge Case (Existing)
                     VStack(alignment: .leading, spacing: 20) {
                         Text("BADGE CASE")
                             .cyberpunkFont(size: 18)
@@ -58,6 +59,31 @@ struct PublicProfileView: View {
                                 ForEach(profile.badges) { badge in
                                     BadgeView(badge: badge)
                                 }
+                            }
+                        }
+                    }
+                    .padding()
+                    
+                    // Public Decks Section
+                    VStack(alignment: .leading, spacing: 20) {
+                        Text("PUBLIC SIGNAL DECKS")
+                            .cyberpunkFont(size: 18)
+                            .foregroundColor(Theme.neonPink)
+                        
+                        if publicDecks.isEmpty {
+                            Text("No public decks decrypted.")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.4))
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(publicDecks) { deck in
+                                        NavigationLink(destination: DeckDetailView(deck: deck, isOwned: false)) {
+                                            CreatorDeckCard(deck: deck)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, 4)
                             }
                         }
                     }
@@ -85,12 +111,67 @@ struct PublicProfileView: View {
     @MainActor
     private func loadProfile() async {
         do {
-            self.profile = try await UserAPI.shared.fetchPublicProfile(userId: userId)
+            async let profileTask = UserAPI.shared.fetchPublicProfile(userId: userId)
+            async let decksTask = DeckAPI.shared.fetchUserPublicDecks(userId: userId)
+            
+            let (fetchedProfile, fetchedDecks) = try await (profileTask, decksTask)
+            
+            self.profile = fetchedProfile
+            self.publicDecks = fetchedDecks.map { dto in
+                DeckModel(
+                    backendId: dto.id,
+                    title: dto.title,
+                    creatorId: Int64(dto.creatorId),
+                    creatorName: dto.creatorName,
+                    cardCount: dto.cardCount,
+                    price: dto.priceCoins,
+                    colorHex: dto.customColorHex ?? "FF0080",
+                    description: dto.description,
+                    coverImageUrl: dto.coverImageUrl,
+                    previewVideoUrl: dto.previewVideoUrl,
+                    creatorImageUrl: dto.creatorImageUrl
+                )
+            }
             self.isLoading = false
         } catch {
+            print("Profile load error: \(error)")
             self.errorMessage = "Failed to intercept profile data."
             self.isLoading = false
         }
+    }
+}
+
+struct CreatorDeckCard: View {
+    let deck: DeckModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(hex: deck.colorHex))
+                .frame(width: 140, height: 100)
+                .overlay(
+                    VStack {
+                        Spacer()
+                        Text("\(deck.cardCount) Cards")
+                            .font(.system(size: 10, weight: .black))
+                            .padding(4)
+                            .background(.black.opacity(0.4))
+                            .cornerRadius(4)
+                            .padding(8)
+                    },
+                    alignment: .bottomTrailing
+                )
+            
+            Text(deck.title)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(.white)
+                .lineLimit(1)
+            
+            Text("\(deck.price) Coins")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(Theme.cyberYellow)
+        }
+        .frame(width: 140)
     }
 }
 
@@ -127,7 +208,8 @@ struct ProfileAvatarView: View {
             
             if let urlString = imageUrl, let url = URL(string: urlString) {
                 CachedAsyncImage(url: url) { image in
-                    image.resizable().scaledToFill()
+                    image.resizable()
+                        .scaledToFill()
                 } placeholder: {
                     ProgressView()
                 }

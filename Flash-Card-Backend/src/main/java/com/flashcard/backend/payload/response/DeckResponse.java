@@ -26,6 +26,7 @@ public class DeckResponse {
     
     private Long creatorId;
     private String creatorName;
+    private String creatorImageUrl;
     
     private Integer cardCount;
     

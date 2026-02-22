@@ -99,7 +99,8 @@ class AppDataStore: ObservableObject {
                 colorHex: old.colorHex,
                 description: old.description,
                 coverImageUrl: old.coverImageUrl,
-                previewVideoUrl: old.previewVideoUrl
+                previewVideoUrl: old.previewVideoUrl,
+                creatorImageUrl: old.creatorImageUrl
             )
         }
         // Update in library if found
@@ -116,7 +117,8 @@ class AppDataStore: ObservableObject {
                 colorHex: old.colorHex,
                 description: old.description,
                 coverImageUrl: old.coverImageUrl,
-                previewVideoUrl: old.previewVideoUrl
+                previewVideoUrl: old.previewVideoUrl,
+                creatorImageUrl: old.creatorImageUrl
             )
         }
     }
@@ -135,7 +137,8 @@ class AppDataStore: ObservableObject {
                 colorHex: dto.customColorHex ?? "FF0080",
                 description: dto.description,
                 coverImageUrl: dto.coverImageUrl,
-                previewVideoUrl: dto.previewVideoUrl
+                previewVideoUrl: dto.previewVideoUrl,
+                creatorImageUrl: dto.creatorImageUrl
             )
         }
     }

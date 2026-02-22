@@ -16,6 +16,7 @@ struct DeckModel: Identifiable, Codable {
     let description: String?
     let coverImageUrl: String?
     let previewVideoUrl: String?
+    let creatorImageUrl: String?
     
     // SSoT additions - tracking local engagement states if needed
     // var isLiked: Bool = false
@@ -31,7 +32,8 @@ struct DeckModel: Identifiable, Codable {
          colorHex: String = "FF0080", 
          description: String? = nil, 
          coverImageUrl: String? = nil, 
-         previewVideoUrl: String? = nil) {
+         previewVideoUrl: String? = nil,
+         creatorImageUrl: String? = nil) {
         self.id = id
         self.backendId = backendId
         self.title = title
@@ -43,5 +45,6 @@ struct DeckModel: Identifiable, Codable {
         self.description = description
         self.coverImageUrl = coverImageUrl
         self.previewVideoUrl = previewVideoUrl
+        self.creatorImageUrl = creatorImageUrl
     }
 }

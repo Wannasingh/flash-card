@@ -15,6 +15,7 @@ struct DeckDTO: Codable, Identifiable {
     let isPublic: Bool
     let creatorId: Int
     let creatorName: String
+    let creatorImageUrl: String?
     let cardCount: Int
     let owned: Bool
 }
@@ -158,6 +159,12 @@ class DeckAPI: BaseAPI {
         let request = try createRequest(path: "/api/decks/braindump", method: "POST", body: ["text": text])
         let res = try await performRequest(request, responseType: BrainDumpResponse.self)
         return res.cards
+    }
+    
+    // Fetch public decks for a specific user
+    func fetchUserPublicDecks(userId: Int64) async throws -> [DeckDTO] {
+        let request = try createRequest(path: "/api/decks/user/\(userId)", method: "GET")
+        return try await performRequest(request, responseType: [DeckDTO].self)
     }
 }
 

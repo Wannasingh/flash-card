@@ -3,6 +3,7 @@ import SwiftUI
 
 struct DeckLibraryView: View {
     @EnvironmentObject var dataStore: AppDataStore
+    @EnvironmentObject var themeManager: ThemeManager
     
     // Vertical Paging for owned decks
     var body: some View {

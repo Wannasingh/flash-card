@@ -262,11 +262,13 @@ public class UserController {
             }
 
             String imageUrl = storageService.uploadProfilePicture(user.getId(), imageData, contentType);
+            System.out.println("[API] 💾 Saving new imageUrl for user " + user.getId() + ": " + imageUrl);
 
             user.setImageUrl(imageUrl);
             user.setImageSource("MANUAL");
             user.setImageUpdatedAt(Instant.now());
-            userRepository.save(user);
+            User savedUser = userRepository.save(user);
+            System.out.println("[API] ✅ User saved. DB ImageUrl check: " + savedUser.getImageUrl());
         } catch (Exception e) {
             System.err.println("Upload failed: " + e.getMessage());
             throw e;
@@ -304,6 +306,8 @@ public class UserController {
                 }
             }
         }
+
+        System.out.println("[API] 📤 Returning JwtResponse with imageUrl: " + imageUrl);
 
         return new JwtResponse(
                 null,

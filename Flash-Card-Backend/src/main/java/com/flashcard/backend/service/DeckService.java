@@ -89,6 +89,16 @@ public class DeckService {
                 .collect(Collectors.toList());
     }
 
+    public List<DeckResponse> getUserPublicDecks(Long targetUserId, Long requesterId) {
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        List<Deck> decks = deckRepository.findByCreatorAndIsPublicTrue(targetUser);
+        return decks.stream()
+                .map(deck -> mapToResponse(deck, requesterId))
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public DeckResponse acquireDeck(Long userId, Long deckId) {
         User user = userRepository.findById(userId)
@@ -182,6 +192,7 @@ public class DeckService {
                 .creatorId(deck.getCreator().getId())
                 .creatorName(deck.getCreator().getDisplayName() != null ? deck.getCreator().getDisplayName()
                         : deck.getCreator().getUsername())
+                .creatorImageUrl(constructCreatorImageUrl(deck.getCreator()))
                 .cardCount((int) cardCount)
                 .customColorHex(colorHex)
                 .coverImageUrl(deck.getCoverImageUrl())
@@ -190,5 +201,14 @@ public class DeckService {
                 .updatedAt(deck.getUpdatedAt())
                 .isOwned(isOwned)
                 .build();
+    }
+    private String constructCreatorImageUrl(User creator) {
+        String imageUrl = creator.getImageUrl();
+        if (imageUrl == null || imageUrl.isEmpty()) return null;
+        if (imageUrl.startsWith("http")) return imageUrl;
+        
+        // Return proxied URL
+        // Note: For a real app, baseUrl should be injected via config
+        return "/api/user/profile/" + creator.getId() + "/image";
     }
 }
