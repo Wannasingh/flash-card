@@ -54,7 +54,9 @@ class StudyViewModel: ObservableObject {
         if ratio > 0.4 { // Relaxed matching for spoken voice
             lastEvaluation = "CORRECT! ✅"
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.submitReview(for: card, quality: 5)
+                // Determine if global session by checking if we fetched a specific deck.
+                // For simplicity in voice tutor, we just pass false or we can track it.
+                self.submitReview(for: card, quality: 5, isGlobalSession: false) 
                 self.lastEvaluation = nil
                 self.startVoiceLoop() // Next card
             }
@@ -71,50 +73,54 @@ class StudyViewModel: ObservableObject {
     }
 
     
-    func fetchDueCards() async {
+    func fetchDueCards(deckId: Int? = nil) async {
         // Try to sync any offline reviews first so we don't fetch cards we've already reviewed offline
         await StudySyncManager.shared.syncPendingReviews()
-        
-        guard let token = try? tokenStore.getString(forKey: "accessToken") else {
-            self.errorMessage = "Not logged in"
-            self.isLoading = false
-            return
-        }
         
         isLoading = true
         errorMessage = nil
         
         do {
-            let cards = try await api.fetchDueCards(token: token)
+            let cards: [CardModel]
+            if let specificDeckId = deckId {
+                cards = try await api.fetchCardsForDeck(deckId: specificDeckId)
+            } else {
+                cards = try await api.fetchDueCards()
+                // Sync with Home Screen Widget only for global study sessions
+                WidgetDataStore.shared.saveDueCardsCount(cards.count)
+            }
+            
             // Reverse so the first index is at the top of the ZStack visually if rendered back-to-front
             self.dueCards = cards.reversed()
-            
-            // Sync with Home Screen Widget
-            WidgetDataStore.shared.saveDueCardsCount(cards.count)
 
         } catch {
-            self.errorMessage = "Failed to load cards: \(error.localizedDescription)"
             print("Error fetching cards: \(error)")
+            // Only show error if we have NO cards at all
+            if dueCards.isEmpty {
+                self.errorMessage = "Failed to load cards: \(error.localizedDescription)"
+            }
         }
         
         isLoading = false
     }
     
-    func submitReview(for card: CardModel, quality: Int) {
+    func submitReview(for card: CardModel, quality: Int, isGlobalSession: Bool = false) {
         // Remove locally for immediate UI update
         if let index = dueCards.firstIndex(where: { $0.id == card.id }) {
             dueCards.remove(at: index)
-            // Update widget count
-            WidgetDataStore.shared.saveDueCardsCount(dueCards.count)
+            // Update widget count only if we are in the main global study session
+            if isGlobalSession {
+                WidgetDataStore.shared.saveDueCardsCount(dueCards.count)
+            }
         }
         
         // Ensure backend ID exists (Mock generated cards won't have it)
-        guard let backendId = card.backendId, let token = try? tokenStore.getString(forKey: "accessToken") else { return }
+        guard let backendId = card.backendId else { return }
         
         // Sync to backend asynchronously
         Task {
             do {
-                try await api.submitReview(token: token, cardId: backendId, quality: quality)
+                try await api.submitReview(cardId: backendId, quality: quality)
                 print("Successfully synced review for card \(backendId) with quality \(quality)")
             } catch {
                 print("Failed to sync review for card \(backendId): \(error)")

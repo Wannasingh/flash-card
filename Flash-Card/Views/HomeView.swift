@@ -12,6 +12,7 @@ struct HomeView: View {
     @State private var selectedTab: Tab = .market
     @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
+    @AppStorage("isTabBarHidden") var isTabBarHidden: Bool = false
     
     var body: some View {
         if !hasSeenOnboarding {
@@ -24,27 +25,43 @@ struct HomeView: View {
                 
                 // Main Content
                 TabView(selection: $selectedTab) {
-                    FlashCardFeedView()
-                        .tag(Tab.market)
-                        .ignoresSafeArea()
+                    NavigationStack {
+                        FlashCardFeedView()
+                            .ignoresSafeArea()
+                            .toolbar(.hidden, for: .navigationBar)
+                    }
+                    .tag(Tab.market)
                     
-                    DeckLibraryView()
-                        .tag(Tab.library)
+                    NavigationStack {
+                        DeckLibraryView()
+                            .toolbar(.hidden, for: .navigationBar)
+                    }
+                    .tag(Tab.library)
                     
-                    CreateDeckView()
-                        .tag(Tab.add)
+                    NavigationStack {
+                        CreateDeckView()
+                            .toolbar(.hidden, for: .navigationBar)
+                    }
+                    .tag(Tab.add)
                     
-                    LeaderboardView()
-                        .tag(Tab.rankings)
+                    NavigationStack {
+                        LeaderboardView()
+                            .toolbar(.hidden, for: .navigationBar)
+                    }
+                    .tag(Tab.rankings)
                     
-                    ProfileView()
-                        .tag(Tab.profile)
+                    NavigationStack {
+                        ProfileView()
+                            .toolbar(.hidden, for: .navigationBar)
+                    }
+                    .tag(Tab.profile)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never)) // Allows swiping sideways between main tabs!
                 .ignoresSafeArea()
                 
                 // Custom Bottom Navigation Bar
-                VStack(spacing: 0) {
+                if !isTabBarHidden {
+                    VStack(spacing: 0) {
                     Spacer()
                     
                     HStack(spacing: 0) {
@@ -85,6 +102,7 @@ struct HomeView: View {
                     .background(Color.black.opacity(0.85)) // TikTok dark bar vibe
                 }
                 .ignoresSafeArea(edges: .bottom)
+                }
             }
         }
     }

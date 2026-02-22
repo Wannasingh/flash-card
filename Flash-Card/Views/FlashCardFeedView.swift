@@ -1,9 +1,8 @@
 import SwiftUI
+import AVKit
 
 struct FlashCardFeedView: View {
-    @State private var trendingDecks: [DeckModel] = []
-    @State private var isLoading = true
-    @State private var errorMessage: String?
+    @EnvironmentObject var dataStore: AppDataStore
     @EnvironmentObject var themeManager: ThemeManager
     
     // Vertical Page Tab View Style for "Short Video" feel
@@ -12,7 +11,7 @@ struct FlashCardFeedView: View {
             // Background
             themeManager.currentTheme.background.edgesIgnoringSafeArea(.all)
             
-            if isLoading {
+            if dataStore.isLoading {
                 VStack {
                     ProgressView()
                         .scaleEffect(1.5)
@@ -22,7 +21,7 @@ struct FlashCardFeedView: View {
                         .foregroundColor(themeManager.currentTheme.textSecondary)
                         .padding(.top, 10)
                 }
-            } else if let errorMessage = errorMessage {
+            } else if let errorMessage = dataStore.errorMessage {
                 VStack(spacing: 16) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 50))
@@ -38,7 +37,7 @@ struct FlashCardFeedView: View {
                         .foregroundColor(themeManager.currentTheme.textSecondary)
                         
                     Button("Retry") {
-                        Task { await loadFeed() }
+                        Task { await dataStore.refreshMarketplace() }
                     }
                     .padding()
                     .background(themeManager.currentTheme.primaryAccent)
@@ -46,56 +45,29 @@ struct FlashCardFeedView: View {
                     .cornerRadius(10)
                 }
             } else {
-                // Vertical Page TabView for TikTok-like scroll
-                GeometryReader { proxy in
-                    TabView {
-                        ForEach(trendingDecks) { deck in
+                // Native Vertical Paging ScrollView (iOS 17+)
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(dataStore.marketplaceDecks) { deck in
                             FeedCardView(deck: deck)
-                                .rotationEffect(.degrees(-90)) // Counter-rotate content
-                                .frame(width: proxy.size.width, height: proxy.size.height)
+                                .containerRelativeFrame([.horizontal, .vertical])
                         }
                     }
-                    .rotationEffect(.degrees(90)) // Rotate TabView to scroll vertically
-                    .frame(width: proxy.size.height, height: proxy.size.width)
-                    .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    .ignoresSafeArea()
                 }
+                .scrollTargetBehavior(.paging)
+                .ignoresSafeArea(.all)
+                
+                // Overlay connectivity status
+                ConnectivityBanner()
             }
         }
         .task {
-            await loadFeed()
+            if dataStore.marketplaceDecks.isEmpty {
+                await dataStore.refreshMarketplace()
+            }
         }
     }
     
-    @MainActor
-    func loadFeed() async {
-        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
-            self.errorMessage = "Please log in to view the feed."
-            self.isLoading = false
-            return
-        }
-        
-        do {
-            isLoading = true
-            let dtos = try await DeckAPI.shared.fetchMarketplace(token: token)
-            self.trendingDecks = dtos.map { dto in
-                DeckModel(
-                    backendId: dto.id,
-                    title: dto.title,
-                    creatorName: dto.creatorName,
-                    cardCount: dto.cardCount,
-                    price: dto.priceCoins,
-                    colorHex: dto.customColorHex ?? "FF0080",
-                    description: dto.description
-                )
-            }.shuffled() // Randomize for "Feed" feel
-        } catch {
-            print("Feed Error: \(error.localizedDescription)")
-            self.errorMessage = "Failed to load feed: \(error.localizedDescription)"
-        }
-        isLoading = false
-    }
 }
 
 struct FeedCardView: View {
@@ -103,19 +75,45 @@ struct FeedCardView: View {
     let deck: DeckModel
     @State private var isLiked = false
     @State private var isSaved = false
+    @State private var isFollowed = false
     
     var body: some View {
         ZStack {
-            // Background Image / Gradient
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: [Color(hex: deck.colorHex), themeManager.currentTheme.background]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+            // Background Image / Video / Gradient
+            if let videoUrlStr = deck.previewVideoUrl, let videoUrl = URL(string: videoUrlStr) {
+                // Loop video automatically
+                VideoPlayerView(url: videoUrl)
+                    .ignoresSafeArea()
+            } else if let imageUrlStr = deck.coverImageUrl, let imageUrl = URL(string: imageUrlStr) {
+                AsyncImage(url: imageUrl) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                    case .success(let image):
+                        image.resizable()
+                             .scaledToFill()
+                    case .failure:
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color(hex: deck.colorHex), themeManager.currentTheme.background]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
                 .ignoresSafeArea()
+            } else {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color(hex: deck.colorHex), themeManager.currentTheme.background]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .ignoresSafeArea()
+            }
             
             // Subtle dark overlay to ensure text readability
             themeManager.currentTheme.feedOverlayGradient
@@ -179,21 +177,48 @@ struct FeedCardView: View {
                     Spacer()
                     
                     // Right Side Action Buttons
-                    VStack(spacing: 24) {
+                    VStack(spacing: 20) {
                         // Profile Pic (Action representation)
-                        VStack(spacing: -10) {
-                            Image(systemName: "person.circle.fill")
-                                .resizable()
-                                .frame(width: 48, height: 48)
-                                .foregroundColor(.white)
-                                .background(Color.gray)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                            
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundColor(themeManager.currentTheme.primaryAccent)
-                                .background(Color.white)
-                                .clipShape(Circle())
+                        Button(action: {
+                            Task {
+                                guard let creatorId = deck.creatorId else { return }
+                                
+                                do {
+                                    if isFollowed {
+                                        try await UserAPI.shared.unfollowUser(userId: creatorId)
+                                    } else {
+                                        try await UserAPI.shared.followUser(userId: creatorId)
+                                    }
+                                    
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                        isFollowed.toggle()
+                                    }
+                                } catch {
+                                    print("Follow error: \(error)")
+                                }
+                            }
+                        }) {
+                            VStack(spacing: -10) {
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .frame(width: 48, height: 48)
+                                    .foregroundColor(.white)
+                                    .background(Color.gray)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                                
+                                if !isFollowed {
+                                    Image(systemName: "plus.circle.fill")
+                                        .foregroundColor(themeManager.currentTheme.primaryAccent)
+                                        .background(Color.white)
+                                        .clipShape(Circle())
+                                } else {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Theme.success)
+                                        .background(Color.white)
+                                        .clipShape(Circle())
+                                }
+                            }
                         }
                         
                         // Like Button
@@ -223,22 +248,20 @@ struct FeedCardView: View {
                             )
                         }
                         
-                        // Get/Buy Button
+                        // Study / Deck Detail Button
                         NavigationLink(destination: DeckDetailView(deck: deck, isOwned: false)) {
-                            ActionIcon(icon: "arrow.down.circle.fill", label: "Get", iconColor: themeManager.currentTheme.highlight)
+                            ActionIcon(icon: "play.circle.fill", label: "Study", iconColor: .white)
                         }
                         
                         // Share Button
-                        Button(action: {
-                            // Share action
-                        }) {
+                        ShareLink(item: URL(string: "https://flashcardapp.com/deck/\(deck.backendId ?? 0)")!, subject: Text("Check out this deck: \(deck.title)"), message: Text("I found this awesome deck on FlashCard!")) {
                             ActionIcon(icon: "arrowshape.turn.up.right.fill", label: "Share", iconColor: .white)
                         }
                     }
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 10)
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 60) // Extra padding for new Bottom TabBar
+                .padding(.bottom, 120) // Extra padding to clear the HomeView Bottom TabBar completely
             }
         }
         .onTapGesture(count: 2) {
@@ -269,5 +292,43 @@ struct ActionIcon: View {
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
         }
+    }
+}
+
+// Silent looping video player for backgrounds
+struct VideoPlayerView: UIViewControllerRepresentable {
+    var url: URL
+
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let player = AVQueuePlayer(url: url)
+        
+        let playerItem = AVPlayerItem(url: url)
+        let playerLooper = AVPlayerLooper(player: player, templateItem: playerItem)
+        
+        // Hide controls and auto play silently
+        let controller = AVPlayerViewController()
+        controller.player = player
+        controller.showsPlaybackControls = false
+        controller.videoGravity = .resizeAspectFill
+        
+        player.isMuted = true
+        player.play()
+        
+        // Keep a reference to looper to prevent it from being deallocated
+        context.coordinator.looper = playerLooper
+        
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {
+        // Handle updates if URL changes
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+    
+    class Coordinator {
+        var looper: AVPlayerLooper?
     }
 }

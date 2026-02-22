@@ -41,6 +41,12 @@ public class Deck {
     @Column(nullable = false)
     private Integer price = 0;
 
+    @Column(name = "cover_image_url", columnDefinition = "TEXT")
+    private String coverImageUrl;
+
+    @Column(name = "preview_video_url", columnDefinition = "TEXT")
+    private String previewVideoUrl;
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 

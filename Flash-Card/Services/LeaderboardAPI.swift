@@ -1,35 +1,29 @@
 import Foundation
 
-class LeaderboardAPI {
+class LeaderboardAPI: BaseAPI {
     static let shared = LeaderboardAPI()
-    private let baseURL = "\(AppConfig.backendBaseURL)/api/leaderboard"
     
-    func fetchGlobalLeaderboard(token: String) async throws -> [LeaderboardEntry] {
-        guard let url = URL(string: "\(baseURL)/global") else { throw URLError(.badURL) }
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw URLError(.badServerResponse)
+    func fetchGlobalLeaderboard(region: String? = nil) async throws -> [LeaderboardEntry] {
+        var path = "/api/leaderboard/global"
+        if let region = region {
+            path += "?region=\(region.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
         }
-        
-        return try JSONDecoder().decode([LeaderboardEntry].self, from: data)
+        let request = try createRequest(path: path, method: "GET")
+        return try await performRequest(request, responseType: [LeaderboardEntry].self)
     }
     
-    func fetchAllTimeLeaderboard(token: String) async throws -> [LeaderboardEntry] {
-        guard let url = URL(string: "\(baseURL)/all-time") else { throw URLError(.badURL) }
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw URLError(.badServerResponse)
+    func fetchAllTimeLeaderboard(region: String? = nil) async throws -> [LeaderboardEntry] {
+        var path = "/api/leaderboard/all-time"
+        if let region = region {
+            path += "?region=\(region.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
         }
-        
-        return try JSONDecoder().decode([LeaderboardEntry].self, from: data)
+        let request = try createRequest(path: path, method: "GET")
+        return try await performRequest(request, responseType: [LeaderboardEntry].self)
+    }
+
+    func fetchFriendsLeaderboard() async throws -> [LeaderboardEntry] {
+        let request = try createRequest(path: "/api/leaderboard/friends", method: "GET")
+        return try await performRequest(request, responseType: [LeaderboardEntry].self)
     }
 }
 

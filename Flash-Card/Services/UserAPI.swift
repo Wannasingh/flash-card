@@ -1,25 +1,21 @@
 import Foundation
 
-class UserAPI {
+class UserAPI: BaseAPI {
     static let shared = UserAPI()
-    private let baseURL = "\(AppConfig.backendBaseURL)/api/user"
     
-    func fetchPublicProfile(userId: Int64, token: String) async throws -> PublicProfileResponse {
-        guard let url = URL(string: "\(baseURL)/profile/\(userId)") else {
-            throw URLError(.badURL)
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw URLError(.badServerResponse)
-        }
-        
-        return try JSONDecoder().decode(PublicProfileResponse.self, from: data)
+    func fetchPublicProfile(userId: Int64) async throws -> PublicProfileResponse {
+        let request = try createRequest(path: "/api/user/profile/\(userId)", method: "GET")
+        return try await performRequest(request, responseType: PublicProfileResponse.self)
+    }
+
+    func followUser(userId: Int64) async throws {
+        let request = try createRequest(path: "/api/follow/\(userId)", method: "POST")
+        _ = try await performRequest(request, responseType: MessageResponse.self)
+    }
+
+    func unfollowUser(userId: Int64) async throws {
+        let request = try createRequest(path: "/api/unfollow/\(userId)", method: "DELETE")
+        _ = try await performRequest(request, responseType: MessageResponse.self)
     }
 }
 

@@ -1,15 +1,5 @@
 import Foundation
 
-enum APIError: LocalizedError {
-    case custom(String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .custom(let message): return message
-        }
-    }
-}
-
 struct DeckListResponse: Codable {
     let decks: [DeckDTO]
 }
@@ -19,6 +9,8 @@ struct DeckDTO: Codable, Identifiable {
     let title: String
     let description: String?
     let customColorHex: String?
+    let coverImageUrl: String?
+    let previewVideoUrl: String?
     let priceCoins: Int
     let isPublic: Bool
     let creatorId: Int
@@ -29,9 +21,9 @@ struct DeckDTO: Codable, Identifiable {
 
 struct BrainDumpCardDto: Codable, Identifiable {
     var id: UUID = UUID()
-    let frontText: String
-    let backText: String
-    let aiMnemonic: String
+    var frontText: String
+    var backText: String
+    var aiMnemonic: String
     
     enum CodingKeys: String, CodingKey {
         case frontText, backText, aiMnemonic
@@ -42,86 +34,50 @@ struct BrainDumpResponse: Codable {
     let cards: [BrainDumpCardDto]
 }
 
-class DeckAPI {
+class DeckAPI: BaseAPI {
     static let shared = DeckAPI()
     
-    var baseURL: URL {
-        AppConfig.backendBaseURL.appendingPathComponent("/api/decks")
-    }
-    
     // Fetch user's personal library
-    func fetchMyLibrary(token: String) async throws -> [DeckDTO] {
-        let url = baseURL.appendingPathComponent("/library")
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
-        }
-        
-        if httpResponse.statusCode == 200 {
-            // API returns a List directly, not wrapped in an object
-            return try JSONDecoder().decode([DeckDTO].self, from: data)
-        } else {
-            throw APIError.custom(NSLocalizedString("Failed to fetch library", comment: ""))
+    func fetchMyLibrary() async throws -> [DeckDTO] {
+        let request = try createRequest(path: "/api/decks/library", method: "GET")
+        do {
+            let dtos = try await performRequest(request, responseType: [DeckDTO].self)
+            CacheManager.shared.save(dtos, forKey: "library")
+            return dtos
+        } catch {
+            if let cached = CacheManager.shared.load([DeckDTO].self, forKey: "library") {
+                print("[DeckAPI] 📶 Network failed, returning cached library.")
+                return cached
+            }
+            throw error
         }
     }
     
     // Fetch public marketplace decks
-    func fetchMarketplace(token: String) async throws -> [DeckDTO] {
-        let url = baseURL.appendingPathComponent("/marketplace")
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
-        }
-        
-        if httpResponse.statusCode == 200 {
-            return try JSONDecoder().decode([DeckDTO].self, from: data)
-        } else {
-            throw APIError.custom(NSLocalizedString("Failed to fetch marketplace", comment: ""))
+    func fetchMarketplace() async throws -> [DeckDTO] {
+        let request = try createRequest(path: "/api/decks/marketplace", method: "GET")
+        do {
+            let dtos = try await performRequest(request, responseType: [DeckDTO].self)
+            CacheManager.shared.save(dtos, forKey: "marketplace")
+            return dtos
+        } catch {
+            if let cached = CacheManager.shared.load([DeckDTO].self, forKey: "marketplace") {
+                print("[DeckAPI] 📶 Network failed, returning cached marketplace.")
+                return cached
+            }
+            throw error
         }
     }
     
     // Purchase or Acquire a Deck
-    func acquireDeck(token: String, deckId: Int) async throws {
-        let url = baseURL.appendingPathComponent("/\(deckId)/acquire")
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        let (_, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
-        }
-        
-        // 200 OK, 400 Insufficient Coins
-        if httpResponse.statusCode != 200 {
-             throw APIError.custom(NSLocalizedString("Failed to acquire deck (Error \(httpResponse.statusCode))", comment: ""))
-        }
+    func acquireDeck(deckId: Int) async throws {
+        let request = try createRequest(path: "/api/decks/\(deckId)/acquire", method: "POST")
+        _ = try await performRequest(request, responseType: MessageResponse.self)
     }
     
     // Create a new Deck
-    func createDeck(token: String, title: String, description: String, customColorHex: String, priceCoins: Int, isPublic: Bool, cards: [BrainDumpCardDto]? = nil) async throws -> DeckDTO {
-        let url = baseURL
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let payload: [String: Any] = [
+    func createDeck(title: String, description: String, customColorHex: String, priceCoins: Int, isPublic: Bool, coverImageUrl: String? = nil, previewVideoUrl: String? = nil, cards: [BrainDumpCardDto]? = nil) async throws -> DeckDTO {
+        var payload: [String: Any] = [
             "title": title,
             "description": description,
             "customColorHex": customColorHex,
@@ -129,42 +85,23 @@ class DeckAPI {
             "isPublic": isPublic
         ]
         
-        var finalPayload = payload
+        if let cover = coverImageUrl { payload["coverImageUrl"] = cover }
+        if let pv = previewVideoUrl  { payload["previewVideoUrl"] = pv }
+        
         if let cards = cards {
-            let cardsPayload = cards.map { card in
-                return [
-                    "frontText": card.frontText,
-                    "backText": card.backText,
-                    "aiMnemonic": card.aiMnemonic
-                ]
-            }
-            finalPayload["cards"] = cardsPayload
+            payload["cards"] = cards.map { [
+                "frontText": $0.frontText,
+                "backText": $0.backText,
+                "aiMnemonic": $0.aiMnemonic
+            ]}
         }
         
-        request.httpBody = try JSONSerialization.data(withJSONObject: finalPayload)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
-        }
-        
-        if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
-            return try JSONDecoder().decode(DeckDTO.self, from: data)
-        } else {
-             throw APIError.custom(NSLocalizedString("Failed to create deck (Error \(httpResponse.statusCode))", comment: ""))
-        }
+        let request = try createRequest(path: "/api/decks", method: "POST", body: payload)
+        return try await performRequest(request, responseType: DeckDTO.self)
     }
     
     // Add a Card to an existing Deck
-    func addCardToDeck(token: String, deckId: Int, frontContent: String, backContent: String, frontMediaUrl: String?, backMediaUrl: String?, aiMnemonic: String?) async throws {
-        let url = baseURL.appendingPathComponent("/\(deckId)/cards")
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+    func addCardToDeck(deckId: Int, frontContent: String, backContent: String, frontMediaUrl: String?, backMediaUrl: String?, aiMnemonic: String?) async throws {
         var payload: [String: Any] = [
             "deckId": deckId,
             "frontContent": frontContent,
@@ -175,72 +112,53 @@ class DeckAPI {
         if let bmUrl = backMediaUrl  { payload["backMediaUrl"] = bmUrl }
         if let aiMn = aiMnemonic     { payload["aiMnemonic"] = aiMn }
         
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        
-        let (_, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
-        }
-        
-        if httpResponse.statusCode != 200 && httpResponse.statusCode != 201 {
-             throw APIError.custom(NSLocalizedString("Failed to add card to deck (Error \(httpResponse.statusCode))", comment: ""))
-        }
+        let request = try createRequest(path: "/api/decks/\(deckId)/cards", method: "POST", body: payload)
+        _ = try await performRequest(request, responseType: MessageResponse.self)
     }
     
     // Generate AI Mnemonic
-    func generateAiMnemonic(token: String, frontText: String) async throws -> String {
-        let url = AppConfig.backendBaseURL.appendingPathComponent("/api/cards/ai-mnemonic")
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Pass the string directly or wrap it? The Spring backend reads @RequestBody String
-        request.httpBody = frontText.data(using: .utf8)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
+    func generateAiMnemonic(frontText: String, backText: String, cardId: Int? = nil) async throws -> String {
+        var path = "/api/cards/ai-mnemonic"
+        if let cardId = cardId {
+            path += "?cardId=\(cardId)"
         }
         
-        if httpResponse.statusCode == 200 {
-            struct MessageResponse: Codable {
-                let message: String
-            }
-            let msgObj = try JSONDecoder().decode(MessageResponse.self, from: data)
-            return msgObj.message
-        } else {
-             throw APIError.custom(NSLocalizedString("Failed to generate AI mnemonic (Error \(httpResponse.statusCode))", comment: ""))
+        let payload: [String: Any] = [
+            "frontContent": frontText,
+            "backContent": backText
+        ]
+        
+        let request = try createRequest(path: path, method: "POST", body: payload)
+        
+        // This endpoint is slightly non-standard: it might return CardDTO or MessageResponse
+        let (data, response) = try await session.data(for: request)
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
+        
+        if statusCode == 401 {
+            try await AuthAPI.shared.refreshAccessToken()
+            return try await generateAiMnemonic(frontText: frontText, backText: backText, cardId: cardId)
         }
+        
+        if let card = try? JSONDecoder().decode(CardDTO.self, from: data) {
+            return card.aiMnemonic ?? ""
+        } else if let msg = try? JSONDecoder().decode(MessageResponse.self, from: data) {
+            return msg.message ?? ""
+        }
+        
+        throw APIError.custom("Failed to generate AI mnemonic")
     }
-    
+
+    struct CardDTO: Codable {
+        let id: Int
+        let aiMnemonic: String?
+    }
+
     // AI Brain Dump: Generate a list of cards from raw text
-    func brainDump(token: String, text: String) async throws -> [BrainDumpCardDto] {
-        let url = baseURL.appendingPathComponent("/braindump")
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let payload: [String: Any] = ["text": text]
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.custom(NSLocalizedString("Invalid network response", comment: ""))
-        }
-        
-        if httpResponse.statusCode == 200 {
-            let res = try JSONDecoder().decode(BrainDumpResponse.self, from: data)
-            return res.cards
-        } else {
-             throw APIError.custom(NSLocalizedString("Failed to generate cards (Error \(httpResponse.statusCode))", comment: ""))
-        }
+    func brainDump(text: String) async throws -> [BrainDumpCardDto] {
+        let request = try createRequest(path: "/api/decks/braindump", method: "POST", body: ["text": text])
+        let res = try await performRequest(request, responseType: BrainDumpResponse.self)
+        return res.cards
     }
 }
+
 

@@ -13,5 +13,7 @@ public class DeckRequest {
     private List<String> tags;
     private Boolean isPublic = false;
     private Integer price = 0;
+    private String coverImageUrl;
+    private String previewVideoUrl;
     private List<CardRequest> cards;
 }

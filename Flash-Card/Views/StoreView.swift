@@ -4,6 +4,7 @@ struct StoreView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var sessionStore: SessionStore
     @State private var items: [StoreItem] = []
+    @State private var ownedItemCodes: Set<String> = []
     @State private var isLoading = true
     @State private var selectedItem: StoreItem?
     
@@ -76,17 +77,22 @@ struct StoreView: View {
     @MainActor
     private func loadData() async {
         do {
-            items = try await StoreAPI.shared.getItems()
+            async let itemsTask = StoreAPI.shared.getItems()
+            async let inventoryTask = StoreAPI.shared.getInventory()
+            
+            let (fetchedItems, inventory) = try await (itemsTask, inventoryTask)
+            
+            self.items = fetchedItems
+            self.ownedItemCodes = Set(inventory.map { $0.code })
             isLoading = false
         } catch {
             print("Failed to load store: \(error)")
+            isLoading = false
         }
     }
     
     private func isOwned(_ item: StoreItem) -> Bool {
-        // This will be simpler once we have UserInventory model on frontend
-        // For now, let's assume we fetch owned items too if needed
-        return false 
+        return ownedItemCodes.contains(item.code)
     }
 }
 

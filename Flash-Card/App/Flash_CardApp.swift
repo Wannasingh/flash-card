@@ -13,6 +13,7 @@ struct Flash_CardApp: App {
     let persistenceController = PersistenceController.shared
     @StateObject private var sessionStore = SessionStore.shared
     @StateObject private var themeManager = ThemeManager.shared
+    @StateObject private var dataStore = AppDataStore.shared
 
     var body: some Scene {
         WindowGroup {
@@ -20,6 +21,7 @@ struct Flash_CardApp: App {
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .environmentObject(sessionStore)
                 .environmentObject(themeManager)
+                .environmentObject(dataStore)
         }
     }
 }

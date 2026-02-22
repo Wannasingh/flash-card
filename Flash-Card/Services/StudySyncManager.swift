@@ -28,14 +28,14 @@ class StudySyncManager {
     
     func syncPendingReviews() async {
         let queue = getQueue()
-        guard !queue.isEmpty, let token = try? tokenStore.getString(forKey: "accessToken") else { return }
+        guard !queue.isEmpty else { return }
         
         print("Attempting to sync \(queue.count) pending reviews...")
         var successfullySyncedCardIds: Set<Int> = []
         
         for review in queue {
             do {
-                try await api.submitReview(token: token, cardId: review.cardId, quality: review.quality)
+                try await api.submitReview(cardId: review.cardId, quality: review.quality)
                 successfullySyncedCardIds.insert(review.cardId)
                 
                 // Update Streak for Widget (Simple logic: if a review is synced, record today as active)

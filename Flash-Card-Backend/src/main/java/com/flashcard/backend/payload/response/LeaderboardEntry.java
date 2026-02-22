@@ -15,4 +15,5 @@ public class LeaderboardEntry {
     private Double xp;
     private Integer rank;
     private Integer streak;
+    private String activeAuraCode;
 }

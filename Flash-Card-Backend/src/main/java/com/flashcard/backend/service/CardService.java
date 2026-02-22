@@ -86,6 +86,19 @@ public class CardService {
         cardRepository.delete(card);
     }
 
+    public CardResponse updateMnemonic(Long userId, Long cardId, String mnemonic) {
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Card not found"));
+
+        if (!card.getDeck().getCreator().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to update this card");
+        }
+
+        card.setAiMnemonic(mnemonic);
+        Card saved = cardRepository.save(card);
+        return mapToResponse(saved);
+    }
+
     private CardResponse mapToResponse(Card card) {
         return CardResponse.builder()
                 .id(card.getId())

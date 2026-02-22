@@ -46,6 +46,8 @@ public class DeckService {
         deck.setTags(request.getTags());
         deck.setIsPublic(request.getIsPublic());
         deck.setPrice(request.getPrice());
+        deck.setCoverImageUrl(request.getCoverImageUrl());
+        deck.setPreviewVideoUrl(request.getPreviewVideoUrl());
 
         Deck savedDeck = deckRepository.save(deck);
 
@@ -57,6 +59,8 @@ public class DeckService {
                 card.setFrontText(cardReq.getFrontText());
                 card.setBackText(cardReq.getBackText());
                 card.setAiMnemonic(cardReq.getAiMnemonic());
+                card.setImageUrl(cardReq.getImageUrl());
+                card.setVideoUrl(cardReq.getVideoUrl());
                 cardRepository.save(card);
             });
         }
@@ -135,6 +139,8 @@ public class DeckService {
         deck.setTags(request.getTags());
         deck.setIsPublic(request.getIsPublic());
         deck.setPrice(request.getPrice());
+        deck.setCoverImageUrl(request.getCoverImageUrl());
+        deck.setPreviewVideoUrl(request.getPreviewVideoUrl());
 
         Deck updatedDeck = deckRepository.save(deck);
         return mapToResponse(updatedDeck, userId);
@@ -178,6 +184,8 @@ public class DeckService {
                         : deck.getCreator().getUsername())
                 .cardCount((int) cardCount)
                 .customColorHex(colorHex)
+                .coverImageUrl(deck.getCoverImageUrl())
+                .previewVideoUrl(deck.getPreviewVideoUrl())
                 .createdAt(deck.getCreatedAt())
                 .updatedAt(deck.getUpdatedAt())
                 .isOwned(isOwned)

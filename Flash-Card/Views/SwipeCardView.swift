@@ -2,30 +2,6 @@ import SwiftUI
 import AVKit
 import SceneKit
 
-// Model for Phase 4 UI mapping
-struct CardModel: Identifiable {
-    let id: UUID
-    let backendId: Int? // Required for API syncing
-    let frontText: String
-    let backText: String
-    let imageUrl: String?
-    let videoUrl: String?
-    let arModelUrl: String?
-    let memeUrl: String?
-    let aiMnemonic: String?
-    
-    init(id: UUID = UUID(), backendId: Int? = nil, frontText: String, backText: String, imageUrl: String? = nil, videoUrl: String? = nil, arModelUrl: String? = nil, memeUrl: String? = nil, aiMnemonic: String? = nil) {
-        self.id = id
-        self.backendId = backendId
-        self.frontText = frontText
-        self.backText = backText
-        self.imageUrl = imageUrl
-        self.videoUrl = videoUrl
-        self.arModelUrl = arModelUrl
-        self.memeUrl = memeUrl
-        self.aiMnemonic = aiMnemonic
-    }
-}
 
 struct SwipeCardView: View {
     let card: CardModel
@@ -35,6 +11,8 @@ struct SwipeCardView: View {
     @State private var offset: CGSize = .zero
     @State private var isShowingBack = false
     @State private var player: AVPlayer?
+    @State private var localMnemonic: String?
+    @State private var isGeneratingMnemonic = false
     
     var body: some View {
         ZStack {
@@ -78,13 +56,49 @@ struct SwipeCardView: View {
                     // Added a 3D flip effect feeling when text changes
                     .rotation3DEffect(.degrees(isShowingBack ? 360 : 0), axis: (x: 0, y: 1, z: 0))
                 
-                if isShowingBack, let mnemonic = card.aiMnemonic, !mnemonic.isEmpty {
-                    Text("💡 \(mnemonic)")
-                        .font(.subheadline.italic())
-                        .foregroundColor(Theme.cyberYellow)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
+                if isShowingBack {
+                    if let mnemonic = localMnemonic ?? card.aiMnemonic, !mnemonic.isEmpty {
+                        Text("💡 \(mnemonic)")
+                            .font(.subheadline.italic())
+                            .foregroundColor(Theme.cyberYellow)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 8)
+                    } else {
+                        Button(action: {
+                            Task {
+                                isGeneratingMnemonic = true
+                                do {
+                                    let result = try await DeckAPI.shared.generateAiMnemonic(
+                                        frontText: card.frontText,
+                                        backText: card.backText,
+                                        cardId: card.backendId
+                                    )
+                                    localMnemonic = result
+                                } catch {
+                                    print("Failed to generate mnemonic: \(error)")
+                                }
+                                isGeneratingMnemonic = false
+                            }
+                        }) {
+                            HStack {
+                                if isGeneratingMnemonic {
+                                    ProgressView().tint(Theme.cyanAccent)
+                                } else {
+                                    Image(systemName: "sparkles")
+                                    Text("ASK AI MNEMONIC")
+                                }
+                            }
+                            .font(.caption.bold())
+                            .foregroundColor(Theme.cyanAccent)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .disabled(isGeneratingMnemonic)
                         .padding(.top, 8)
+                    }
                 }
                 
                 Spacer()

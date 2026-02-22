@@ -59,11 +59,24 @@ public class CardController {
         return ResponseEntity.ok(new MessageResponse("Card deleted successfully"));
     }
 
-    // AI Endpoint Placeholder
-    @Operation(summary = "Generate AI Mnemonic (Mock/Placeholder)")
+    // AI Endpoint
+    @Operation(summary = "Generate AI Mnemonic (Integrated Mock)")
     @PostMapping("/cards/ai-mnemonic")
-    public ResponseEntity<MessageResponse> generateAiMnemonic(@RequestBody String frontText) {
-        String mockMnemonic = "To remember '" + frontText + "', imagine a giant banana dancing salsa!";
-        return ResponseEntity.ok(new MessageResponse(mockMnemonic));
+    public ResponseEntity<?> generateAiMnemonic(@RequestBody CardRequest request,
+                                               @RequestParam(required = false) Long cardId,
+                                               @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        String frontText = request.getFrontText();
+        String backText = request.getBackText();
+        
+        // Simulating AI Logic: "Brainy" mnemonic generation
+        String mnemonic = "To remember '" + frontText + "' (which means " + backText + "), " +
+                         "visualize a neon-lit " + frontText.toLowerCase() + " performing a glitch-hop dance!";
+        
+        if (cardId != null) {
+            CardResponse response = cardService.updateMnemonic(userDetails.getId(), cardId, mnemonic);
+            return ResponseEntity.ok(response);
+        }
+        
+        return ResponseEntity.ok(new MessageResponse(mnemonic));
     }
 }

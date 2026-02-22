@@ -4,6 +4,7 @@ struct LeaderboardView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @State private var entries: [LeaderboardEntry] = []
     @State private var isWeekly = true
+    @State private var scopeIndex = 0 // 0: Global, 1: Region
     @State private var isLoading = false
     @State private var selectedUserId: Int64?
     
@@ -31,6 +32,22 @@ struct LeaderboardView: View {
                     
                     Spacer()
                     
+                    Picker("Scope", selection: $scopeIndex) {
+                        Text("Global").tag(0)
+                        Text("Region").tag(1)
+                        Text("Friends").tag(2)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 200)
+                    .onChange(of: scopeIndex) { _, _ in
+                        Task { await loadLeaderboard() }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 20)
+                
+                HStack {
+                    Spacer()
                     Picker("Timeframe", selection: $isWeekly) {
                         Text("Weekly").tag(true)
                         Text("All-Time").tag(false)
@@ -41,8 +58,8 @@ struct LeaderboardView: View {
                         Task { await loadLeaderboard() }
                     }
                 }
-                .padding()
-                .padding(.top, 20)
+                .padding(.horizontal)
+                .padding(.bottom, 10)
                 
                 if isLoading {
                     Spacer()
@@ -120,14 +137,18 @@ struct LeaderboardView: View {
     
     @MainActor
     private func loadLeaderboard() async {
-        guard let token = try? tokenStore.getString(forKey: "accessToken") else { return }
-        
         isLoading = true
         do {
-            if isWeekly {
-                entries = try await api.fetchGlobalLeaderboard(token: token)
+            if scopeIndex == 2 {
+                // Friends scope always weekly for simplicity
+                entries = try await api.fetchFriendsLeaderboard()
             } else {
-                entries = try await api.fetchAllTimeLeaderboard(token: token)
+                let regionValue: String? = scopeIndex == 1 ? "TH" : nil 
+                if isWeekly {
+                    entries = try await api.fetchGlobalLeaderboard(region: regionValue)
+                } else {
+                    entries = try await api.fetchAllTimeLeaderboard(region: regionValue)
+                }
             }
         } catch {
             print("Failed to load leaderboard: \(error)")

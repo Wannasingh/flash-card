@@ -95,16 +95,11 @@ struct BrainDumpView: View {
     }
     
     private func generateCards() async {
-        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
-            errorMessage = "Authentication error."
-            return
-        }
-        
         isGenerating = true
         errorMessage = nil
         
         do {
-            let cards = try await DeckAPI.shared.brainDump(token: token, text: rawText)
+            let cards = try await DeckAPI.shared.brainDump(text: rawText)
             generatedCards = cards
             isGenerating = false
             showReview = true

@@ -17,7 +17,9 @@ enum Theme {
     static var cyanAccent: Color { current.secondaryAccent }
     static var electricBlue: Color { current.secondaryAccent } // Fallback
     static var cyberYellow: Color { current.warning }
+    static var warning: Color { current.warning }
     static var matrixGreen: Color { current.highlight }
+    static var success: Color { current.highlight }
     
     // Text
     static var textPrimary: Color { current.textPrimary }

@@ -1,22 +1,8 @@
 import SwiftUI
 
-// Mock model for Phase 5 UI before hooking up APIs
-struct DeckModel: Identifiable {
-    let id = UUID()
-    let backendId: Int?
-    let title: String
-    let creatorName: String
-    let cardCount: Int
-    let price: Int // 0 if free/owned
-    let colorHex: String
-    let description: String?
-}
 
 struct DeckLibraryView: View {
-    @EnvironmentObject var themeManager: ThemeManager
-    @State private var ownedDecks: [DeckModel] = []
-    @State private var isLoading = true
-    @State private var errorMessage: String?
+    @EnvironmentObject var dataStore: AppDataStore
     
     // Vertical Paging for owned decks
     var body: some View {
@@ -24,7 +10,7 @@ struct DeckLibraryView: View {
             // Background
             themeManager.currentTheme.background.ignoresSafeArea()
             
-            if isLoading {
+            if dataStore.isLoading {
                 VStack {
                     ProgressView()
                         .scaleEffect(1.5)
@@ -34,7 +20,7 @@ struct DeckLibraryView: View {
                         .foregroundColor(themeManager.currentTheme.textSecondary)
                         .padding(.top, 10)
                 }
-            } else if let errorMessage = errorMessage {
+            } else if let errorMessage = dataStore.errorMessage {
                 VStack(spacing: 16) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 50))
@@ -44,14 +30,14 @@ struct DeckLibraryView: View {
                         .multilineTextAlignment(.center)
                         .foregroundColor(themeManager.currentTheme.textPrimary)
                     Button("Retry") {
-                        Task { await loadLibrary() }
+                        Task { await dataStore.refreshLibrary() }
                     }
                     .padding()
                     .background(themeManager.currentTheme.primaryAccent)
                     .foregroundColor(.white)
                     .cornerRadius(10)
                 }
-            } else if ownedDecks.isEmpty {
+            } else if dataStore.libraryDecks.isEmpty {
                 // Empty State
                 VStack(spacing: 20) {
                     Image(systemName: "square.stack.3d.up.slash.fill")
@@ -77,72 +63,48 @@ struct DeckLibraryView: View {
                     }
                 }
             } else {
-                // TikTok Style Feed for Owned Decks
-                GeometryReader { proxy in
-                    TabView {
-                        ForEach(ownedDecks) { deck in
-                            LibraryDeckFeedCard(deck: deck)
-                                .rotationEffect(.degrees(-90))
-                                .frame(width: proxy.size.width, height: proxy.size.height)
+                // Bookshelf Layout
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 20)], spacing: 30) {
+                        ForEach(dataStore.libraryDecks) { deck in
+                            NavigationLink(destination: DeckDetailView(deck: deck, isOwned: true)) {
+                                LibraryBookView(deck: deck)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                         
-                        // Last Page: Create New Deck Card
-                        CreateNewDeckCard()
-                            .rotationEffect(.degrees(-90))
-                            .frame(width: proxy.size.width, height: proxy.size.height)
+                        // Add New Deck Book Placeholder
+                        NavigationLink(destination: CreateDeckView()) {
+                            CreateNewBookView()
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .rotationEffect(.degrees(90))
-                    .frame(width: proxy.size.height, height: proxy.size.width)
-                    .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    .ignoresSafeArea()
+                    .padding(20)
+                    .padding(.bottom, 80) // Space for bottom tab bar
                 }
+                
+                // Overlay connectivity status
+                ConnectivityBanner()
             }
         }
         .task {
-            await loadLibrary()
+            if dataStore.libraryDecks.isEmpty {
+                await dataStore.refreshLibrary()
+            }
         }
     }
     
-    @MainActor
-    func loadLibrary() async {
-        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
-            self.errorMessage = "Please log in to view your arsenal."
-            self.isLoading = false
-            return
-        }
-        
-        do {
-            isLoading = true
-            let dtos = try await DeckAPI.shared.fetchMyLibrary(token: token)
-            self.ownedDecks = dtos.map { dto in
-                DeckModel(
-                    backendId: dto.id,
-                    title: dto.title,
-                    creatorName: dto.creatorName,
-                    cardCount: dto.cardCount,
-                    price: dto.priceCoins,
-                    colorHex: dto.customColorHex ?? "00E5FF",
-                    description: dto.description
-                )
-            }
-        } catch {
-            self.errorMessage = "Signal lost. Could not load decks."
-            print(error)
-        }
-        isLoading = false
-    }
 }
 
-// Full Screen Card for Owned Decks
-struct LibraryDeckFeedCard: View {
+// Book-like UI for a Deck
+struct LibraryBookView: View {
     @EnvironmentObject var themeManager: ThemeManager
     let deck: DeckModel
     
     var body: some View {
-        ZStack {
-            // Background
-            Rectangle()
+        ZStack(alignment: .leading) {
+            // Book cover
+            RoundedRectangle(cornerRadius: 8)
                 .fill(
                     LinearGradient(
                         gradient: Gradient(colors: [Color(hex: deck.colorHex), themeManager.currentTheme.background]),
@@ -150,104 +112,78 @@ struct LibraryDeckFeedCard: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .ignoresSafeArea()
+                .overlay {
+                    if let imageUrlStr = deck.coverImageUrl, let imageUrl = URL(string: imageUrlStr) {
+                        AsyncImage(url: imageUrl) { phase in
+                            if let image = phase.image {
+                                image.resizable()
+                                     .scaledToFill()
+                                     .overlay(Color.black.opacity(0.4))
+                            }
+                        }
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .shadow(color: .black.opacity(0.5), radius: 5, x: 4, y: 4)
             
-            themeManager.currentTheme.feedOverlayGradient
-                .ignoresSafeArea()
-            
-            VStack {
+            // Text Content on Book
+            VStack(alignment: .leading, spacing: 5) {
+                Text(deck.title)
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+                    .padding(.top, 10)
+                
                 Spacer()
                 
-                HStack(alignment: .bottom) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundColor(themeManager.currentTheme.highlight)
-                            Text("OWNED")
-                                .font(.caption.bold())
-                                .foregroundColor(themeManager.currentTheme.highlight)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 4)
-                                .background(themeManager.currentTheme.highlight.opacity(0.2))
-                                .cornerRadius(4)
-                        }
-                        
-                        Text(deck.title)
-                            .font(.system(size: 32, weight: .heavy, design: .rounded))
-                            .lineLimit(2)
-                            .foregroundColor(.white)
-                        
-                        Text("by \(deck.creatorName)")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.8))
-                        
-                        HStack {
-                            Label("\(deck.cardCount) Cards", systemImage: "rectangle.stack.fill")
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.black.opacity(0.4))
-                                .cornerRadius(8)
-                                .foregroundColor(.white)
-                        }
-                        
-                        // Main Action: Study
-                        NavigationLink(destination: DeckDetailView(deck: deck, isOwned: true)) {
-                            HStack {
-                                Image(systemName: "flame.fill")
-                                Text("START STUDYING")
-                                    .fontWeight(.bold)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(themeManager.currentTheme.primaryAccent)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
-                        }
-                        .padding(.top, 10)
-                    }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(20)
-                    .padding(.horizontal)
-                    .padding(.bottom, 100)
-                }
+                Text("\(deck.cardCount) Cards")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.8))
+                
+                Divider().background(Color.white.opacity(0.3))
+                
+                Text(deck.creatorName)
+                    .font(.caption2)
+                    .foregroundColor(themeManager.currentTheme.highlight)
+                    .lineLimit(1)
             }
+            .padding(10)
+            
+            // Book Spine effect
+            Rectangle()
+                .fill(Color.white.opacity(0.2))
+                .frame(width: 5)
+                .padding(.leading, 8)
         }
+        .frame(height: 160) // Book aspect ratio roughly 2:3 (110x160)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
-struct CreateNewDeckCard: View {
+// Add New Book Placeholder
+struct CreateNewBookView: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         ZStack {
-            themeManager.currentTheme.background.ignoresSafeArea()
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
+                .foregroundColor(themeManager.currentTheme.textSecondary)
+                .frame(height: 160)
             
-            VStack(spacing: 20) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(themeManager.currentTheme.primaryAccent)
-                
-                Text("Expand Your Arsenal")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(themeManager.currentTheme.textPrimary)
-                
-                Text("Create a new deck to master new skills.")
+            VStack {
+                Image(systemName: "plus")
+                    .font(.largeTitle)
                     .foregroundColor(themeManager.currentTheme.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                
-                NavigationLink(destination: CreateDeckView()) {
-                    Text("Create New Deck")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(width: 200)
-                        .background(themeManager.currentTheme.primaryAccent)
-                        .cornerRadius(12)
-                }
+                Text("New Deck")
+                    .font(.caption)
+                    .foregroundColor(themeManager.currentTheme.textSecondary)
+                    .padding(.top, 5)
             }
         }
     }

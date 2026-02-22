@@ -71,6 +71,12 @@ public class User {
     @Column(name = "active_skin_code")
     private String activeSkinCode;
 
+    @Column(name = "country")
+    private String country;
+
+    @Column(name = "region")
+    private String region;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles", schema = "flashcard",
             joinColumns = @JoinColumn(name = "user_id"),

@@ -2,6 +2,11 @@ import SwiftUI
 
 struct StudySessionView: View {
     @StateObject private var viewModel = StudyViewModel()
+    let deckId: Int?
+    
+    init(deckId: Int? = nil) {
+        self.deckId = deckId
+    }
     
     var body: some View {
         ZStack {
@@ -131,7 +136,7 @@ struct StudySessionView: View {
             }
         }
         .task {
-            await viewModel.fetchDueCards()
+            await viewModel.fetchDueCards(deckId: deckId)
         }
     }
     
@@ -141,7 +146,7 @@ struct StudySessionView: View {
         generator.notificationOccurred(quality > 3 ? .success : .warning)
         
         // Pass to ViewModel to remove from UI and Fire to Backend
-        viewModel.submitReview(for: card, quality: quality)
+        viewModel.submitReview(for: card, quality: quality, isGlobalSession: deckId == nil)
     }
 }
 

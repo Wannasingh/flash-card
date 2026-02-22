@@ -1,0 +1,5 @@
+ALTER TABLE flashcard.users 
+ADD COLUMN IF NOT EXISTS country VARCHAR(255);
+
+ALTER TABLE flashcard.users 
+ADD COLUMN IF NOT EXISTS region VARCHAR(255);

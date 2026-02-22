@@ -132,7 +132,7 @@ struct EditProfileView: View {
                 if displayName != sessionStore.userProfile?.displayName {
                     updatedProfile = try await AuthAPI.shared.updateProfile(
                         displayName: displayName,
-                        imageUrl: updatedProfile?.imageUrl ?? sessionStore.userProfile?.imageUrl
+                        imageUrl: nil
                     )
                 }
                 

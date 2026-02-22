@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CardEditorView: View {
+    @EnvironmentObject var dataStore: AppDataStore
     @Environment(\.presentationMode) var presentationMode
     
     // Core Card Data
@@ -107,7 +108,7 @@ struct CardEditorView: View {
                                             .clipShape(Circle())
                                     }
                                 }
-                                .disabled(frontText.isEmpty || isGeneratingMnemonic)
+                                .disabled(frontText.isEmpty || backText.isEmpty || isGeneratingMnemonic)
                             }
                             
                             if !aiMnemonic.isEmpty {
@@ -222,18 +223,12 @@ struct CardEditorView: View {
     }
     
     private func addCard() async {
-        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
-            errorMessage = "Authentication token missing."
-            return
-        }
-        
         isSubmitting = true
         errorMessage = nil
         successMessage = nil
         
         do {
             try await DeckAPI.shared.addCardToDeck(
-                token: token,
                 deckId: deckId,
                 frontContent: frontText,
                 backContent: backText,
@@ -251,6 +246,12 @@ struct CardEditorView: View {
             backImageUrl = ""
             aiMnemonic = ""
             
+            
+            // Update global SSoT count
+            let currentDeck = dataStore.libraryDecks.first(where: { $0.backendId == deckId })
+            let currentCount = currentDeck?.cardCount ?? 0
+            dataStore.updateCardCount(deckId: deckId, newCount: currentCount + 1)
+            
             // Haptic feedback for success
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
@@ -265,16 +266,11 @@ struct CardEditorView: View {
     }
     
     private func generateMnemonic() async {
-        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
-            errorMessage = "Authentication token missing."
-            return
-        }
-        
         isGeneratingMnemonic = true
         errorMessage = nil
         
         do {
-            let generated = try await DeckAPI.shared.generateAiMnemonic(token: token, frontText: frontText)
+            let generated = try await DeckAPI.shared.generateAiMnemonic(frontText: frontText, backText: backText)
             aiMnemonic = generated
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)

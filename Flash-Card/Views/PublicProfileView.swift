@@ -84,9 +84,8 @@ struct PublicProfileView: View {
     
     @MainActor
     private func loadProfile() async {
-        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else { return }
         do {
-            self.profile = try await UserAPI.shared.fetchPublicProfile(userId: userId, token: token)
+            self.profile = try await UserAPI.shared.fetchPublicProfile(userId: userId)
             self.isLoading = false
         } catch {
             self.errorMessage = "Failed to intercept profile data."

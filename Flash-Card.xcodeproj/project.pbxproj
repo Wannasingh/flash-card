@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A530C5172FCEDBC911C90C11 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB48D2F3E2CF8A4387DB9D40 /* AppTheme.swift */; };
-		B3D1696AE209591D19823F4B /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46057184A5BFED5FD6E5DB87 /* ThemeManager.swift */; };
-		F9309C2717C92CFCFB1781E8 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B27B29FE03BE1ABA71624A /* AppTheme.swift */; };
+		A530C5172FCEDBC911C90C11 /* Flash-Card/App/AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB48D2F3E2CF8A4387DB9D40 /* Flash-Card/App/AppTheme.swift */; };
+		B3D1696AE209591D19823F4B /* Flash-Card/App/ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46057184A5BFED5FD6E5DB87 /* Flash-Card/App/ThemeManager.swift */; };
+		F9309C2717C92CFCFB1781E8 /* Flash-Card/App/AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5B27B29FE03BE1ABA71624A /* Flash-Card/App/AppTheme.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,31 +34,25 @@
 		0C5567A02F48F56A005A949A /* Flash-CardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Flash-CardTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C5567AA2F48F56A005A949A /* Flash-CardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Flash-CardUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DE25787DA9BEAFFD05FA568 /* Debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Configs/Debug.xcconfig; sourceTree = "<group>"; };
-		46057184A5BFED5FD6E5DB87 /* ThemeManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; path = "Flash-Card/App/ThemeManager.swift"; sourceTree = SOURCE_ROOT; };
+		46057184A5BFED5FD6E5DB87 /* Flash-Card/App/ThemeManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Flash-Card/App/ThemeManager.swift"; sourceTree = SOURCE_ROOT; };
 		8C5F14D4F4192602C6BE21AC /* Release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Configs/Release.xcconfig; sourceTree = "<group>"; };
-		E5B27B29FE03BE1ABA71624A /* AppTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; path = "Flash-Card/App/AppTheme.swift"; sourceTree = SOURCE_ROOT; };
-		FB48D2F3E2CF8A4387DB9D40 /* AppTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; path = "Flash-Card/App/AppTheme.swift"; sourceTree = SOURCE_ROOT; };
+		E5B27B29FE03BE1ABA71624A /* Flash-Card/App/AppTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Flash-Card/App/AppTheme.swift"; sourceTree = SOURCE_ROOT; };
+		FB48D2F3E2CF8A4387DB9D40 /* Flash-Card/App/AppTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Flash-Card/App/AppTheme.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0C5567902F48F569005A949A /* Flash-Card */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = "Flash-Card";
 			sourceTree = "<group>";
 		};
 		0C5567A32F48F56A005A949A /* Flash-CardTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = "Flash-CardTests";
 			sourceTree = "<group>";
 		};
 		0C5567AD2F48F56A005A949A /* Flash-CardUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = "Flash-CardUITests";
 			sourceTree = "<group>";
 		};
@@ -89,6 +83,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0C21D6F42F4A920000ADEDF5 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				E5B27B29FE03BE1ABA71624A /* Flash-Card/App/AppTheme.swift */,
+				46057184A5BFED5FD6E5DB87 /* Flash-Card/App/ThemeManager.swift */,
+				FB48D2F3E2CF8A4387DB9D40 /* Flash-Card/App/AppTheme.swift */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		0C5567852F48F569005A949A = {
 			isa = PBXGroup;
 			children = (
@@ -97,6 +101,7 @@
 				0C5567AD2F48F56A005A949A /* Flash-CardUITests */,
 				0C55678F2F48F569005A949A /* Products */,
 				DCF5DD19FCB7160EDDFBC05D /* Configs */,
+				0C21D6F42F4A920000ADEDF5 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -257,9 +262,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F9309C2717C92CFCFB1781E8 /* AppTheme.swift in Sources */,
-				B3D1696AE209591D19823F4B /* ThemeManager.swift in Sources */,
-				A530C5172FCEDBC911C90C11 /* AppTheme.swift in Sources */,
+				F9309C2717C92CFCFB1781E8 /* Flash-Card/App/AppTheme.swift in Sources */,
+				B3D1696AE209591D19823F4B /* Flash-Card/App/ThemeManager.swift in Sources */,
+				A530C5172FCEDBC911C90C11 /* Flash-Card/App/AppTheme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

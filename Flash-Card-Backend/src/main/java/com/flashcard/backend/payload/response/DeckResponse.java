@@ -13,6 +13,8 @@ public class DeckResponse {
     private Long id;
     private String title;
     private String description;
+    private String coverImageUrl;
+    private String previewVideoUrl;
     
     // Custom hex color (can be generated or stored)
     private String customColorHex;

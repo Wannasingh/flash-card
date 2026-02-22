@@ -6,6 +6,8 @@ struct ProfileView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var storeManager = StoreKitManager()
     @State private var showPurchaseLoading = false
+    @State private var createdDecks: [DeckModel] = []
+    @State private var isLoadingDecks = true
 
     var body: some View {
         NavigationView {
@@ -137,34 +139,93 @@ struct ProfileView: View {
                         }
                         .padding(.horizontal)
                         
-                        // Action Buttons
-                        VStack(spacing: 16) {
-                            NavigationLink(destination: StoreView()) {
-                                ActionRow(icon: "sparkles", title: "Aura Store", color: .yellow)
-                            }
-                            
-                            NavigationLink(destination: EditProfileView()) {
-                                ActionRow(icon: "pencil.line", title: "Edit Profile", color: themeManager.currentTheme.highlight)
-                            }
-                            
-                            Button(action: {
-                                sessionStore.logout()
-                            }) {
-                                ActionRow(icon: "power", title: "System Logout", color: themeManager.currentTheme.primaryAccent)
+                    // User's Created Decks
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("MY CREATIONS")
+                            .font(.caption.bold())
+                            .foregroundColor(themeManager.currentTheme.primaryAccent)
+                            .padding(.horizontal)
+                        
+                        if isLoadingDecks {
+                            ProgressView().padding()
+                        } else if createdDecks.isEmpty {
+                            Text("No decks created yet.")
+                                .foregroundColor(themeManager.currentTheme.textSecondary)
+                                .font(.subheadline)
+                                .padding(.horizontal)
+                        } else {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(createdDecks) { deck in
+                                        NavigationLink(destination: DeckDetailView(deck: deck, isOwned: true)) {
+                                            LibraryBookView(deck: deck)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
+                                }
+                                .padding(.horizontal)
                             }
                         }
-                        .padding(.horizontal)
                     }
-                    .padding(.vertical)
-                    .padding(.bottom, 60) // Safe Area for Bottom Tab
+                    
+                    // Action Buttons
+                    VStack(spacing: 16) {
+                        NavigationLink(destination: StoreView()) {
+                            ActionRow(icon: "sparkles", title: "Aura Store", color: .yellow)
+                        }
+                        
+                        NavigationLink(destination: EditProfileView()) {
+                            ActionRow(icon: "pencil.line", title: "Edit Profile", color: themeManager.currentTheme.highlight)
+                        }
+                        
+                        Button(action: {
+                            sessionStore.logout()
+                        }) {
+                            ActionRow(icon: "power", title: "System Logout", color: themeManager.currentTheme.primaryAccent)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 10)
                 }
-                .refreshable {
-                    await sessionStore.refreshProfile()
-                }
+                .padding(.vertical)
+                .padding(.bottom, 60) // Safe Area for Bottom Tab
             }
-            .navigationTitle("Player Stats")
-            .navigationBarBackground(themeColor: themeManager.currentTheme.primaryAccent)
+            .refreshable {
+                await sessionStore.refreshProfile()
+                await loadMyCreatedDecks()
+            }
         }
+        .task {
+            await loadMyCreatedDecks()
+        }
+        .navigationTitle("Player Stats")
+        .navigationBarBackground(themeColor: themeManager.currentTheme.primaryAccent)
+        }
+    }
+
+    @MainActor
+    private func loadMyCreatedDecks() async {
+        isLoadingDecks = true
+        do {
+            let dtos = try await DeckAPI.shared.fetchMyLibrary() // Note: This fetches library (acquired + created). In a real app, backend might split 'created by me' vs 'acquired by me'. For Phase4, we'll list them all here for simplicity, or API could be enhanced.
+            self.createdDecks = dtos.map { dto in
+                DeckModel(
+                    backendId: dto.id,
+                    title: dto.title,
+                    creatorId: Int64(dto.creatorId),
+                    creatorName: dto.creatorName,
+                    cardCount: dto.cardCount,
+                    price: dto.priceCoins,
+                    colorHex: dto.customColorHex ?? "00E5FF",
+                    description: dto.description,
+                    coverImageUrl: dto.coverImageUrl,
+                    previewVideoUrl: dto.previewVideoUrl
+                )
+            }.filter { $0.creatorName == sessionStore.userProfile?.username || $0.creatorName == sessionStore.userProfile?.displayName } // simple client side filter if API returns all
+        } catch {
+            print("Failed to load user decks in profile: \(error)")
+        }
+        isLoadingDecks = false
     }
 }
 

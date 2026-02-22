@@ -20,4 +20,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findTop50ByOrderByWeeklyXPDesc();
 
     List<User> findTop50ByOrderByTotalXPDesc();
+
+    List<User> findTop50ByCountryOrderByWeeklyXPDesc(String country);
+
+    List<User> findTop50ByCountryOrderByTotalXPDesc(String country);
+
+    List<User> findTop50ByRegionOrderByWeeklyXPDesc(String region);
+
+    List<User> findTop50ByRegionOrderByTotalXPDesc(String region);
 }

@@ -10,6 +10,9 @@ struct CreateDeckView: View {
     @State private var isPublic: Bool = false
     @State private var selectedColorHex: String = "00E5FF" // Default Cyan
     
+    @State private var coverImageUrl: String = ""
+    @State private var previewVideoUrl: String = ""
+    
     @State private var isSubmitting = false
     @State private var errorMessage: String?
     @State private var showBrainDump = false
@@ -146,6 +149,38 @@ struct CreateDeckView: View {
                             .padding(.vertical, 8)
                         }
                         
+                        // Media URLs
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("COVER IMAGE URL (OPTIONAL)")
+                                .font(.caption.bold())
+                                .foregroundColor(themeManager.currentTheme.primaryAccent)
+                            
+                            TextField("https://...", text: $coverImageUrl)
+                                .font(.body)
+                                .foregroundColor(themeManager.currentTheme.textPrimary)
+                                .padding()
+                                .background(themeManager.currentTheme.surface)
+                                .cornerRadius(12)
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeManager.currentTheme.textSecondary.opacity(0.3), lineWidth: 1))
+                                .keyboardType(.URL)
+                                .autocapitalization(.none)
+
+                            Text("PREVIEW VIDEO URL (OPTIONAL)")
+                                .font(.caption.bold())
+                                .foregroundColor(themeManager.currentTheme.primaryAccent)
+                                .padding(.top, 8)
+                            
+                            TextField("https://...", text: $previewVideoUrl)
+                                .font(.body)
+                                .foregroundColor(themeManager.currentTheme.textPrimary)
+                                .padding()
+                                .background(themeManager.currentTheme.surface)
+                                .cornerRadius(12)
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeManager.currentTheme.textSecondary.opacity(0.3), lineWidth: 1))
+                                .keyboardType(.URL)
+                                .autocapitalization(.none)
+                        }
+                        
                         // Marketplace Settings
                         VStack(alignment: .leading, spacing: 16) {
                             Text("MARKETPLACE SETTINGS")
@@ -191,6 +226,56 @@ struct CreateDeckView: View {
                         .background(themeManager.currentTheme.surface.opacity(0.5))
                         .cornerRadius(16)
                         
+                        // Cards List
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Text("DECK CARDS (\(generatedCards.count))")
+                                    .font(.caption.bold())
+                                    .foregroundColor(themeManager.currentTheme.primaryAccent)
+                                Spacer()
+                                Button(action: {
+                                    // Append an empty card to edit inline
+                                    generatedCards.append(BrainDumpCardDto(frontText: "", backText: "", aiMnemonic: ""))
+                                }) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(themeManager.currentTheme.highlight)
+                                }
+                            }
+                            
+                            ForEach($generatedCards) { $card in
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        TextField("Front Text", text: $card.frontText)
+                                            .font(.body)
+                                            .foregroundColor(themeManager.currentTheme.textPrimary)
+                                            .padding(10)
+                                            .background(themeManager.currentTheme.background)
+                                            .cornerRadius(8)
+                                        
+                                        Button(action: {
+                                            if let index = generatedCards.firstIndex(where: { $0.id == card.id }) {
+                                                generatedCards.remove(at: index)
+                                            }
+                                        }) {
+                                            Image(systemName: "trash.fill")
+                                                .foregroundColor(themeManager.currentTheme.warning)
+                                        }
+                                    }
+                                    
+                                    TextField("Back Text", text: $card.backText)
+                                        .font(.body)
+                                        .foregroundColor(themeManager.currentTheme.textPrimary)
+                                        .padding(10)
+                                        .background(themeManager.currentTheme.background)
+                                        .cornerRadius(8)
+                                }
+                                .padding()
+                                .background(themeManager.currentTheme.surface)
+                                .cornerRadius(12)
+                            }
+                        }
+
                         if let error = errorMessage {
                             Text(error)
                                 .font(.caption)
@@ -243,23 +328,19 @@ struct CreateDeckView: View {
     }
     
     private func createDeck() async {
-        guard let token = try? KeychainStore.shared.getString(forKey: "accessToken") else {
-            errorMessage = "You must be logged in to create a deck."
-            return
-        }
-        
         isSubmitting = true
         errorMessage = nil
         
         do {
             let finalPrice = isPublic ? (Int(price) ?? 0) : 0
             _ = try await DeckAPI.shared.createDeck(
-                token: token,
                 title: title,
                 description: description,
                 customColorHex: selectedColorHex,
                 priceCoins: finalPrice,
                 isPublic: isPublic,
+                coverImageUrl: coverImageUrl.isEmpty ? nil : coverImageUrl,
+                previewVideoUrl: previewVideoUrl.isEmpty ? nil : previewVideoUrl,
                 cards: generatedCards.isEmpty ? nil : generatedCards
             )
             
